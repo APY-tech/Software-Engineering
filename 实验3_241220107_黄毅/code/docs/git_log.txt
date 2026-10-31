@@ -1,4 +1,5 @@
 === git log (main) ===
+3de5de9 实验三 报告修订：精简到 16 页，图改用矢量 PDF，清理提交说明
 9745ea9 实验三 代码留档：git 记录补全到 HEAD，附实验三提交明细
 75bb7a1 实验三 代码留档：补充 git 提交历史与远程地址记录
 e2e555f 实验三 报告：实现与构建报告 26 页，含真实检查与运行输出
@@ -13,6 +14,39 @@ a16c181 回改实验一：REQ-017 驳回后状态、REQ-001 幂等键、REQ-009 
 76f4651 实验二 UML：六张图的 PlantUML 源码与渲染图
 
 === 实验三提交明细 ===
+3de5de9 实验三 报告修订：精简到 16 页，图改用矢量 PDF，清理提交说明
+
+ src/report3/img/class.pdf                          | Bin 0 -> 109814 bytes
+ src/report3/img/component.pdf                      | Bin 0 -> 79337 bytes
+ src/report3/img/seq_reserve.pdf                    | Bin 0 -> 97299 bytes
+ src/report3/img/seq_revision.pdf                   | Bin 0 -> 105359 bytes
+ src/report3/img/service.pdf                        | Bin 0 -> 135569 bytes
+ src/report3/img/state.pdf                          | Bin 0 -> 41765 bytes
+ src/report3/listings/cli.tex                       |   6 --
+ src/report3/listings/demo.tex                      |  56 ++----------
+ src/report3/listings/git.tex                       |  31 ++++---
+ src/report3/main.tex                               |   8 +-
+ src/report3/make_listings.py                       |  28 +++++-
+ src/report3/sec1.tex                               |  54 +++---------
+ src/report3/sec2.tex                               |  98 ++++++---------------
+ src/report3/sec3.tex                               |  46 ++++------
+ src/report3/sec4.tex                               |  63 ++-----------
+ src/report3/sec5.tex                               |  48 +++-------
+ src/report3/sec6.tex                               |  31 +++----
+ src/report3/sec7.tex                               |  46 ----------
+ ...77\256\346\224\271\345\256\241\346\240\270.pdf" | Bin 0 -> 105359 bytes
+ ...2\217\345\233\276_\351\242\204\347\272\246.pdf" | Bin 0 -> 97299 bytes
+ ...34\215\345\212\241\347\261\273\345\233\276.pdf" | Bin 0 -> 135569 bytes
+ ...34\215\345\212\241\347\261\273\345\233\276.png" | Bin 331319 -> 262636 bytes
+ ...4\215\345\212\241\347\261\273\345\233\276.puml" |  15 +---
+ .../UML\347\212\266\346\200\201\345\233\276.pdf"   | Bin 0 -> 41765 bytes
+ .../UML/UML\347\261\273\345\233\276.pdf"           | Bin 0 -> 109814 bytes
+ .../UML/UML\347\261\273\345\233\276.png"           | Bin 227031 -> 195084 bytes
+ .../UML/UML\347\261\273\345\233\276.puml"          |  15 +---
+ .../UML\347\273\204\344\273\266\345\233\276.pdf"   | Bin 0 -> 79337 bytes
+ .../code/docs/git_log.txt"                         |  52 +++++------
+ ...56\236\351\252\214\346\212\245\345\221\212.pdf" | Bin 1515458 -> 751779 bytes
+ 30 files changed, 168 insertions(+), 429 deletions(-)
 9745ea9 实验三 代码留档：git 记录补全到 HEAD，附实验三提交明细
 
  .../code/docs/git_log.txt"                         | 72 +++++++++++++++++++++-
@@ -35,38 +69,7 @@ e2e555f 实验三 报告：实现与构建报告 26 页，含真实检查与运�
  src/report3/listings/pylint_after.tex              |   2 +
  src/report3/listings/pylint_before.tex             |  38 +++++
  src/report3/listings/pytest.tex                    |   3 +
- src/report3/main.tex                               | 154 +++++++++++++++++++
- src/report3/make_listings.py                       | 115 ++++++++++++++
- src/report3/sec1.tex                               |  70 +++++++++
- src/report3/sec2.tex                               | 166 +++++++++++++++++++++
- src/report3/sec3.tex                               |  83 +++++++++++
- src/report3/sec4.tex                               |  93 ++++++++++++
- src/report3/sec5.tex                               |  89 +++++++++++
- src/report3/sec6.tex                               |  47 ++++++
- src/report3/sec7.tex                               |  46 ++++++
- ...56\236\351\252\214\346\212\245\345\221\212.pdf" | Bin 0 -> 1515458 bytes
- 22 files changed, 1109 insertions(+), 4 deletions(-)
-ad62b25 实验三 UML：按实现修订类图，新增服务类图与两张时序图
-
- ...77\256\346\224\271\345\256\241\346\240\270.png" | Bin 0 -> 171059 bytes
- ...7\256\346\224\271\345\256\241\346\240\270.puml" |  57 ++++++++
- ...2\217\345\233\276_\351\242\204\347\272\246.png" | Bin 0 -> 160786 bytes
- ...\217\345\233\276_\351\242\204\347\272\246.puml" |  57 ++++++++
- ...34\215\345\212\241\347\261\273\345\233\276.png" | Bin 0 -> 331319 bytes
- ...4\215\345\212\241\347\261\273\345\233\276.puml" | 142 ++++++++++++++++++++
- .../UML\347\212\266\346\200\201\345\233\276.png"   | Bin 0 -> 180636 bytes
- .../UML\347\212\266\346\200\201\345\233\276.puml"  |  48 +++++++
- .../UML/UML\347\261\273\345\233\276.png"           | Bin 0 -> 227031 bytes
- .../UML/UML\347\261\273\345\233\276.puml"          | 147 +++++++++++++++++++++
- .../UML\347\273\204\344\273\266\345\233\276.png"   | Bin 0 -> 396388 bytes
- .../UML\347\273\204\344\273\266\345\233\276.puml"  |  88 ++++++++++++
- 12 files changed, 539 insertions(+)
-31056f2 实验三 代码留档：pylint 前后对比、测试与演示输出、提示词记录
-
 
 === remote ===
 origin	https://github.com/APY-tech/Software-Engineering.git (fetch)
 origin	https://github.com/APY-tech/Software-Engineering.git (push)
-=== branch ===
-## main...origin/main
- M src/report3/listings/cli.tex
