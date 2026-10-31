@@ -1,0 +1,42 @@
+\clearpage
+\section{版本管理与修改追踪}\label{sec:git}
+
+实验二沿用实验一的仓库（\texttt{github.com/APY-tech/Software-Engineering}），不新开仓库。理由有两个：需求与设计同源，回改需求时的 diff 和图形改动留在同一处才能互相对照；按时间回看也能看出“需求 \(\rightarrow\) 设计”的演变，而不是只留一堆最终文件。
+
+提交按“一类产物一次提交、AI 生成与人工修改分开记”拆分，提交说明里写明哪些由模型生成、哪些是人工改的。实验二的主要提交见表~\ref{tab:commit}。
+
+\begin{center}
+\captionof{table}{实验二的主要提交与人工改动}\label{tab:commit}
+\zihao{-5}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}p{4.65cm}Yp{5.1cm}@{}}
+\toprule
+提交说明 & 内容 & 类型与人工改动 \\
+\midrule
+实验二 UML：六图源码与渲染图 & \texttt{UML/*.puml}、\texttt{*.png} & AI 生成初稿；人工修订 7 处（删 Order 实体、服务类移出、改组合状态、幂等前移等） \\
+实验二 UI：10 个界面与原型源文件 & \texttt{UI界面/*.png}、\texttt{src/ui} & AI 出版式；人工改列表形态、驳回原因控件、配色令牌 \\
+回改实验一：REQ-017 / 001 / 009 & \texttt{requirements.md} v1.1 & 纯人工修改，文末附三条改动理由 \\
+实验二 报告 & \texttt{src/report}、实验报告 PDF & 人工写结论与结构；模型辅助扩写，逐条核对后删改 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{回改实验一的一处实例。}画状态图时发现实验一 REQ-017 写着“修改审核被驳回，商品回到草稿状态”，但同一条又写着“修改审核期间买家仍可预约”——已被预约的已发布商品退回草稿，草稿就带上了有效预约，与“已预约不能修改”也冲突。处理顺序是先改需求（版本升到 v1.1，驳回改为维持已发布、丢弃待审内容），再改图（状态图中“驳回丢弃新内容”的内部转移），两次改动分属两个提交，diff 可以互相对照。若只改图不改需求，实验三按旧需求实现就会写出错误逻辑，这也是回改必须入库、不能只在对话里说一句的原因。
+
+\textbf{为什么分次提交。}模型整段重写很常见，分次提交后只需回退某一次；提交说明标注类型后，review 时可以先看人工修改的 diff（这些才含判断），AI 生成的部分只看是否被完整改写。实验一的提交（AI 初稿 \(\rightarrow\) 人工修正 19 条 \(\rightarrow\) 补 PDF）与实验二沿用同一套习惯：\texttt{git log} 里能区分哪一步是生成、哪一步是判断。
+
+\begin{center}
+\captionof{table}{仓库结构与各目录的用途}\label{tab:repo}
+\zihao{-5}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}p{4.3cm}Y@{}}
+\toprule
+路径 & 内容 \\
+\midrule
+\texttt{实验2\_241220107\_黄毅/} & 交付物：报告 PDF、UML 源码与图、UI 界面图，与提交给课程平台的 zip 内容一致 \\
+\texttt{src/ui/} & 界面原型的 HTML/CSS 与导出脚本，10 张界面图由此生成 \\
+\texttt{src/report/} & 报告的 LaTeX 源与插图，本 PDF 由此编译 \\
+\texttt{requirements.md} & 实验一需求文档，已升至 v1.1 并附回改记录 \\
+\bottomrule
+\end{tabularx}
+\end{center}

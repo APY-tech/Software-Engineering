@@ -1,0 +1,27 @@
+\section{软件的主要功能}
+
+本系统为\textbf{校园二手交易系统}，面向在校学生提供闲置物品的发布、审核、查询、预约与线下交易记录服务。设计输入是实验一的 19 条需求、7 个商品状态与 10 条异常处理。实验一已界定系统不含在线支付、物流与即时通讯，交易在线下完成、系统只留痕，因此本设计\textbf{没有“订单”实体}，交易由“商品 + 预约记录”表达，并发控制的重心也落在“同一商品至多一条有效预约”上。形态为前后端分离的 B/S 结构：用户端 H5、后台 Web 控制台、MySQL 持久化。
+
+按业务能力把系统划分为 8 个模块，模块内高内聚、模块间低耦合。表~\ref{tab:module} 同时给出每个模块承担的功能与关键类（表内数字即需求编号 REQ-xxx）。
+
+\begin{center}
+\captionof{table}{主要功能与模块划分（表内数字即需求编号 REQ-xxx）}\label{tab:module}
+\zihao{-5}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}p{2.2cm}Y>{\raggedright\arraybackslash}p{4.2cm}p{2.25cm}@{}}
+\toprule
+模块 & 承担的功能 & 关键类 & 需求 \\
+\midrule
+M1 用户与权限 & 学号注册登录，普通用户兼具买卖双方能力、管理员单独分配；按角色、资源归属、业务状态三重校验，越权拦截；密码加密存储与全站 HTTPS & User、Session、AccessGuard & 004 / 012 / 016 \\
+M2 商品管理 & 草稿与提交审核；已发布商品修改进入“已发布 + 修改待审”组合状态；下架；分类维护（待确认） & Item、ItemRevision & 002 / 009 / 014 / 017 \\
+M3 审核 & 审核通过与驳回（记录原因）、追加审核记录、待审内容原子替换 & AuditRecord、AuditService & 003 / 019 \\
+M4 查询 & 关键词、分类、价格区间、状态组合筛选，按发布时间排序，只返回已发布商品 & ItemQuery、ItemQueryService & 005 / 011 \\
+M5 交易 & 唯一有效预约与幂等返回；卖家取消、卖家确认、买家确认；满 7 天未确认自动完成 & Reservation、TradeService、TimeoutJob & 001 / 006 / 007 / 008 / 015 \\
+M6 举报治理 & 举报提交与去重（同一用户同一商品仅一条待处理），处置为下架或驳回 & Report、ReportService & 010 / 014 \\
+M7 日志与统计 & 操作日志只追加、失败也记；审核历史；卖家与管理员两套统计口径 & OperationLog、StatisticsService & 013 / 018 \\
+M8 公共支撑 & 通知推送、文件存储、定时调度，不实现业务规则 & Notification、NotificationService & 支撑 M3 / M5 / M6 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+模块交互遵循两条规则。一是\textbf{状态写入单一入口}：商品状态只有商品模块能写，交易模块在预约、取消、确认、完成时调用商品模块接口同步状态，审核通过后由商品模块完成发布，举报处置调用商品模块的下架方法以复用“已预约不能直接下架”的校验。二是\textbf{横切能力下沉}：审核与交易的结果通知统一走通知组件，所有写操作在服务出口统一追加日志。
