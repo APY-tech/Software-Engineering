@@ -1,0 +1,88 @@
+@startuml UML组件图
+' ===== 校园二手交易系统 组件图 =====
+' 学号：241220107  姓名：黄毅
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 200
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam nodesep 26
+skinparam ranksep 46
+skinparam componentStyle rectangle
+skinparam component {
+  BackgroundColor #FDFDFB
+  BorderColor #4A5C6E
+  FontColor #1F2E3D
+}
+skinparam package {
+  BackgroundColor #F6F8FA
+  BorderColor #92A5B7
+  FontColor #2F4256
+  FontStyle bold
+}
+skinparam database {
+  BackgroundColor #EAF1E7
+  BorderColor #5A7A57
+}
+skinparam arrowColor #4A5C6E
+
+
+package "客户端（表现层）" as CLIENT {
+  component "用户端\n移动 H5 / 小程序" as UC
+  component "管理后台\nWeb 控制台" as AC
+}
+
+package "接入层" as GATE {
+  component "API 网关\n路由 / 限流 / HTTPS 强制跳转" as GW
+  component "认证与鉴权组件\nAuthComponent" as AUTH
+}
+
+package "业务组件（应用层）" as BIZ {
+  component "商品管理组件\nItemComponent" as C_ITEM
+  component "审核组件\nAuditComponent" as C_AUDIT
+  component "查询组件\nQueryComponent" as C_QUERY
+  component "交易组件\nTradeComponent" as C_TRADE
+  component "举报治理组件\nReportComponent" as C_REPORT
+  component "日志与统计组件\nLogStatComponent" as C_LOG
+}
+
+package "支撑组件（基础设施层）" as INFRA {
+  component "通知组件\nNotifyComponent" as C_NOTIFY
+  component "定时调度组件\nScheduler" as C_SCHED
+  component "文件存储组件\nFileStore" as C_FILE
+}
+
+database "关系型数据库 MySQL\n商品 / 预约 / 举报 / 审核 / 日志" as DB
+
+' ---- 客户端接入 ----
+UC -down-> GW : HTTPS
+AC -down-> GW : HTTPS
+GW -down-> AUTH : 校验会话与角色
+
+' ---- 业务组件统一经网关鉴权后进入 ----
+AUTH -down-> C_QUERY
+AUTH -down-> C_ITEM
+AUTH -down-> C_AUDIT
+AUTH -down-> C_TRADE
+AUTH -down-> C_REPORT
+AUTH -down-> C_LOG
+
+' ---- 业务组件之间的协作 ----
+C_ITEM ..> C_AUDIT : 提交审核
+C_AUDIT ..> C_ITEM : 通过后原子更新
+C_TRADE ..> C_ITEM : 同步商品状态
+C_REPORT ..> C_ITEM : 违规下架
+C_TRADE ..> C_NOTIFY : 交易状态通知
+C_AUDIT ..> C_NOTIFY : 审核结果通知
+C_SCHED ..> C_TRADE : 超时自动完成
+C_ITEM ..> C_FILE : 图片上传
+
+' ---- 数据持久化 ----
+C_REPORT -down-> DB
+C_ITEM -down-> DB
+C_AUDIT -down-> DB
+C_TRADE -down-> DB
+C_LOG -down-> DB
+
+@enduml

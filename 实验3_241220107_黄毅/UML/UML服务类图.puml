@@ -1,0 +1,142 @@
+@startuml UML服务类图
+' ===== 校园二手交易系统 服务层与仓储类图（实验三实现） =====
+' 学号：241220107  姓名：黄毅
+' 说明：界面层只依赖 Application 容器，服务之间按依赖方向单向引用，
+'       仓储与状态机是被服务层复用的两个基础设施。
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 150
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 26
+skinparam ranksep 36
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor #FDFDFB
+  BorderColor #4A5C6E
+  ArrowColor #4A5C6E
+  HeaderBackgroundColor #E8EEF4
+}
+skinparam package {
+  BackgroundColor #F6F8FA
+  BorderColor #92A5B7
+  FontColor #2F4256
+  FontStyle bold
+}
+hide circle
+hide empty members
+
+package "campustrade/services 服务层" as P4 {
+  class "Application（context.py）" as App {
+    +store / journal / auth
+    +items / audit / trade
+    +moderation / stats
+  }
+  class ServiceBase {
+    #store / #auth / #journal
+    #actor(token): User
+  }
+  class AuthService {
+    +register / login
+    +authenticate(token): User
+  }
+  class ItemService {
+    +createDraft / updateItem
+    +submitAudit / offShelf
+    +search(cond, sort): list
+  }
+  class AuditService {
+    +pending(token): list
+    +approve(token, id, ver)
+    +reject(token, id, reason)
+  }
+  class TradeService {
+    +reserve(token, id, reqId)
+    +cancel / confirm / finish
+    +autoFinishDue(now): list
+  }
+  class ModerationService {
+    +submitReport(token, id, type)
+    +handle(token, reportId, action)
+  }
+  class StatsService {
+    +sellerSummary(token, ...)
+    +siteSummary(token, ...)
+  }
+  class JournalService {
+    +record(operator, action, ...)
+    +query(actor, ...): list
+    +notify / inbox(...)
+  }
+}
+
+package "campustrade 基础设施" as P3 {
+  class StateMachine <<utility>> {
+    +canTransition(cur, next)
+    +applyStatus(item, next)
+  }
+  class Store {
+    -path: Path
+    -lock: RLock
+    +commit() / load()
+  }
+  class "Table~<K,T~>" as Table <<generic>> {
+    +newId(): int
+    +add / update / get / require
+    +find(pred): list
+  }
+  class "security.py" as Password <<utility>> {
+    +hashPassword(pwd): str
+    +verifyPassword(pwd, stored)
+  }
+}
+
+package "campustrade/cli 界面" as P5 {
+  class Shell {
+    -token: str
+    +run()
+  }
+}
+
+App --> AuthService
+App --> ItemService
+App --> AuditService
+App --> TradeService
+App --> ModerationService
+App --> StatsService
+App --> JournalService
+App --> Store
+
+AuthService -up-|> ServiceBase
+ItemService -up-|> ServiceBase
+AuditService -up-|> ServiceBase
+TradeService -up-|> ServiceBase
+ModerationService -up-|> ServiceBase
+StatsService -up-|> ServiceBase
+
+AuthService ..> JournalService : 记录登录
+AuthService ..> Password
+ItemService ..> StateMachine
+ItemService ..> JournalService
+TradeService ..> ItemService : 复用状态校验
+AuditService ..> ItemService
+ModerationService ..> ItemService : 复用下架校验
+ServiceBase ..> Store
+JournalService ..> Store
+Store *-down- Table
+Shell ..> App : 只依赖容器
+
+note right of TradeService
+  reserve() 在 store.lock 临界区内完成
+  “幂等键查重 → 状态校验 → 唯一有效预约 → 建单”，
+  并发预约至多一人成功。
+end note
+
+note right of StateMachine
+  状态图的唯一实现：非法迁移抛 Conflict，
+  服务层改状态一律经过 applyStatus。
+end note
+
+@enduml

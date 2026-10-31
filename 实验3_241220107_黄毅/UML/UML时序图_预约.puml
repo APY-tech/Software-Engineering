@@ -1,0 +1,57 @@
+@startuml UML时序图_预约
+' ===== 预约商品（REQ-001）时序图：幂等键 + 唯一有效预约 =====
+' 学号：241220107  姓名：黄毅
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 150
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam sequenceMessageAlignment left
+skinparam sequence {
+  ArrowColor #4A5C6E
+  LifeLineBorderColor #92A5B7
+  ParticipantBackgroundColor #E8EEF4
+  ParticipantBorderColor #4A5C6E
+}
+
+actor "买家" as Buyer
+participant "Shell\n（界面）" as UI
+participant "TradeService" as Trade
+participant "ItemService" as Item
+participant "Store\n（仓储+锁）" as Store
+participant "JournalService" as Journal
+
+Buyer -> UI : 选择商品、输入 requestId
+UI -> Trade : reserve(token, itemId, requestId)
+
+Trade -> Trade : actor = auth.authenticate(token)
+alt token 无效
+  Trade --> UI : AuthError（该操作需要登录后执行）
+end
+
+Trade -> Store : with store.lock
+Trade -> Store : 按 (itemId, requestId) 查预约
+alt 命中幂等键
+  Store --> Trade : 原 Reservation
+  Trade --> UI : 原预约号（不新建）
+else 首次请求
+  Trade -> Store : 取 Item
+  alt 商品非 PUBLISHED
+    Trade --> UI : Conflict（当前状态不能预约）
+  else 是本人商品
+    Trade --> UI : Conflict（不能预约本人商品）
+  else 已有 EFFECTIVE 预约
+    Trade --> UI : Conflict（该商品已有有效预约）
+  else 可预约
+    Trade -> Store : 新建 Reservation(EFFECTIVE)
+    Trade -> Item : applyStatus(item, RESERVED)
+    Item -> Store : 写回 item，version+1
+    Trade -> Journal : record(RESERVE) + notify(卖家)
+    Trade -> Store : commit() 落盘
+    Trade --> UI : Reservation
+  end
+end
+
+UI --> Buyer : 显示预约号与商品新状态
+@enduml

@@ -1,0 +1,147 @@
+@startuml UML类图
+' ===== 校园二手交易系统 领域模型类图（实验三实现） =====
+' 学号：241220107  姓名：黄毅
+' 与实验二类图的差异见实验报告 2.3 / 5.1 节：
+'   1) 实体上的业务方法上移到服务层，实体只保留自身判断；
+'   2) ItemRevision 增加 categoryId，分类调整随内容一起待审；
+'   3) 服务层与仓储见同目录的 UML服务类图。
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 150
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 24
+skinparam ranksep 34
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor #FDFDFB
+  BorderColor #4A5C6E
+  ArrowColor #4A5C6E
+  HeaderBackgroundColor #E8EEF4
+}
+skinparam package {
+  BackgroundColor #F6F8FA
+  BorderColor #92A5B7
+  FontColor #2F4256
+  FontStyle bold
+}
+hide circle
+hide empty members
+
+package "campustrade/models.py 领域模型" as P1 {
+  class User {
+    -userId: int
+    -studentNo: str
+    -role: Role
+    +isAdmin(): bool
+  }
+  class Session {
+    -token: str
+    -expireAt: datetime
+    +isValid(now): bool
+  }
+  class Category {
+    -categoryId: int
+    -name: str
+  }
+  class Item {
+    -itemId: int
+    -status: ItemStatus
+    -version: int
+    +isPublic(): bool
+  }
+  class ItemRevision {
+    -revisionId: int
+    -itemId: int
+    -categoryId: int
+  }
+  class Reservation {
+    -reservationId: int
+    -requestId: str
+    -status: ReservationStatus
+  }
+  class AuditRecord {
+    -auditId: int
+    -result: AuditResult
+  }
+  class Report {
+    -reportId: int
+    -state: ReportState
+  }
+  class OperationLog {
+    -logId: int
+    -actionType: str
+  }
+  class Notification {
+    -notifyId: int
+    -read: bool
+  }
+  class ItemFilter {
+    -keyword: str
+    -status: ItemStatus
+  }
+
+  package "枚举" as E1 {
+    enum ItemStatus {
+      DRAFT
+      AUDITING
+      PUBLISHED
+      RESERVED
+      CONFIRMED
+      FINISHED
+      OFF_SHELF
+    }
+    enum ReservationStatus {
+      EFFECTIVE
+      CANCELLED
+      CONFIRMED
+      FINISHED
+    }
+    enum ReportState {
+      PENDING
+      OFF_SHELF
+      REJECTED
+    }
+    enum Role {
+      USER
+      ADMIN
+    }
+    enum AuditResult {
+      APPROVED
+      REJECTED
+    }
+  }
+}
+
+' ===== 关联 =====
+User "1" -down- "1" Session
+User "1" -right- "0..*" Item : 发布
+User "1" -down- "0..*" Reservation : 预约
+User "1" -down- "0..*" Report : 举报
+User "1" -down- "0..*" OperationLog : 操作
+User "1" -down- "0..*" Notification : 接收
+Item "1" -right- "0..1" ItemRevision : 修改时生成
+Item "0..*" -down- "1" Category : 归属
+Item "1" -down- "0..*" AuditRecord
+Item "1" -down- "0..*" Reservation
+Item "1" -down- "0..*" Report
+Item ..> ItemStatus
+Item ..> ItemFilter
+Reservation ..> ReservationStatus
+Report ..> ReportState
+User ..> Role
+
+note right of ItemRevision
+  组合状态载体：已发布商品被修改时 Item.status 仍为 PUBLISHED，
+  新内容（含分类）暂存于 ItemRevision；审核通过后原子替换，
+  驳回则丢弃待审内容。
+end note
+
+note left of Reservation
+  requestId 为幂等键，(itemId, requestId) 唯一；
+  同一商品至多一条 EFFECTIVE 预约。
+end note
+
+@enduml

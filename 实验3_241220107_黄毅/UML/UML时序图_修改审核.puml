@@ -1,0 +1,57 @@
+@startuml UML时序图_修改审核
+' ===== 已发布商品修改与审核（REQ-017 / REQ-003）时序图 =====
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 150
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam sequenceMessageAlignment left
+skinparam sequence {
+  ArrowColor #4A5C6E
+  LifeLineBorderColor #92A5B7
+  ParticipantBackgroundColor #E8EEF4
+  ParticipantBorderColor #4A5C6E
+}
+
+actor "卖家" as Seller
+actor "管理员" as Admin
+participant "ItemService" as Item
+participant "AuditService" as Audit
+participant "Store" as Store
+
+Seller -> Item : updateItem(token, itemId, edit)
+Item -> Store : 取 Item
+alt 状态为 RESERVED / CONFIRMED / FINISHED
+  Item --> Seller : Conflict（不能修改，需先结束交易）
+else 状态为 PUBLISHED
+  Item -> Store : 写 ItemRevision（新内容 + 新分类）
+  Note right of Store : Item.status 仍为 PUBLISHED\n前台继续展示旧信息
+  Item --> Seller : 已提交审核
+end
+
+Seller -> Seller : 审核期间买家仍可预约（状态 -> RESERVED）
+Note over Store : ItemRevision 与状态解耦，\n预约不影响待审内容
+
+Admin -> Audit : pending(token) 取待审列表
+Audit -> Store : 状态为 AUDITING，或存在 ItemRevision
+Audit --> Admin : 待审商品
+
+Admin -> Audit : approve(token, itemId, version)
+Audit -> Store : 比对 version（防止并发错判）
+alt 版本不一致
+  Audit --> Admin : Conflict（商品已被修改）
+else 首次送审
+  Audit -> Store : status = PUBLISHED, publishedAt = now
+else 修改待审
+  Audit -> Store : 原子替换字段，删除 ItemRevision
+end
+Audit -> Store : 追加 AuditRecord + 通知卖家
+
+Admin -> Audit : reject(token, itemId, reason)
+alt 首次送审
+  Audit -> Store : status = DRAFT
+else 修改待审
+  Audit -> Store : 丢弃 ItemRevision，仍展示旧信息
+end
+@enduml
