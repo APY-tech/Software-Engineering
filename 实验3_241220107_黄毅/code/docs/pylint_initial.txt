@@ -1,0 +1,41 @@
+************* Module campustrade.demo
+campustrade\demo.py:159:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\demo.py:182:0: C0301: Line too long (82/79) (line-too-long)
+campustrade\demo.py:197:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\demo.py:200:0: C0301: Line too long (81/79) (line-too-long)
+campustrade\demo.py:209:0: C0301: Line too long (80/79) (line-too-long)
+************* Module campustrade.seed
+campustrade\seed.py:45:0: C0301: Line too long (81/79) (line-too-long)
+************* Module campustrade.storage
+campustrade\storage.py:60:55: C0123: Use isinstance() rather than type() for a typecheck. (unidiomatic-typecheck)
+campustrade\storage.py:54:0: R0911: Too many return statements (7/6) (too-many-return-statements)
+************* Module campustrade.cli.shell
+campustrade\cli\shell.py:30:0: C0301: Line too long (80/79) (line-too-long)
+************* Module campustrade.services.auth
+campustrade\services\auth.py:156:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\auth.py:12:0: W0611: Unused NotFound imported from campustrade.errors (unused-import)
+************* Module campustrade.services.item
+campustrade\services\item.py:58:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\item.py:162:0: C0301: Line too long (83/79) (line-too-long)
+campustrade\services\item.py:239:0: C0301: Line too long (81/79) (line-too-long)
+campustrade\services\item.py:305:0: C0301: Line too long (81/79) (line-too-long)
+campustrade\services\item.py:366:0: C0301: Line too long (82/79) (line-too-long)
+campustrade\services\item.py:382:0: C0305: Trailing newlines (trailing-newlines)
+************* Module campustrade.services.journal
+campustrade\services\journal.py:70:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\journal.py:82:0: C0301: Line too long (82/79) (line-too-long)
+************* Module campustrade.services.moderation
+campustrade\services\moderation.py:119:0: C0305: Trailing newlines (trailing-newlines)
+************* Module campustrade.services.stats
+campustrade\services\stats.py:73:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\stats.py:77:0: C0301: Line too long (80/79) (line-too-long)
+************* Module campustrade.services.trade
+campustrade\services\trade.py:32:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\trade.py:131:0: C0301: Line too long (81/79) (line-too-long)
+campustrade\services\trade.py:133:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\trade.py:171:0: C0301: Line too long (80/79) (line-too-long)
+campustrade\services\trade.py:231:0: C0301: Line too long (80/79) (line-too-long)
+
+------------------------------------------------------------------
+Your code has been rated at 9.85/10 (previous run: 9.85/10, +0.00)
+
