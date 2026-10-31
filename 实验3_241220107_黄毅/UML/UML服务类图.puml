@@ -1,4 +1,4 @@
-@startuml UML服务类图
+@startuml
 ' ===== 校园二手交易系统 服务层与仓储类图（实验三实现） =====
 ' 学号：241220107  姓名：黄毅
 ' 说明：界面层只依赖 Application 容器，服务之间按依赖方向单向引用，
@@ -10,8 +10,8 @@ skinparam defaultFontName "Microsoft YaHei"
 skinparam defaultFontSize 12
 skinparam classAttributeIconSize 0
 skinparam shadowing false
-skinparam nodesep 26
-skinparam ranksep 36
+skinparam nodesep 16
+skinparam ranksep 30
 skinparam packageStyle rectangle
 skinparam class {
   BackgroundColor #FDFDFB
@@ -128,15 +128,6 @@ JournalService ..> Store
 Store *-down- Table
 Shell ..> App : 只依赖容器
 
-note right of TradeService
-  reserve() 在 store.lock 临界区内完成
-  “幂等键查重 → 状态校验 → 唯一有效预约 → 建单”，
-  并发预约至多一人成功。
-end note
 
-note right of StateMachine
-  状态图的唯一实现：非法迁移抛 Conflict，
-  服务层改状态一律经过 applyStatus。
-end note
 
 @enduml

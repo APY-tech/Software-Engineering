@@ -1,23 +1,27 @@
 === git log (main) ===
-77f1fc4 实验三 代码留档：补充 git 提交历史与远程地址记录（人工整理）
-64793b8 实验三 报告：实现与构建报告 26 页，含真实检查与运行输出（人工撰写）
-b7cc2cd 实验三 UML：按实现修订类图，新增服务类图与两张时序图（人工修订）
-128c4c1 实验三 代码留档：pylint 前后对比、测试与演示输出、提示词记录（人工整理）
-f0937f2 实验三 代码：19 条需求的 Python 分层实现，22 个文件（AI 生成初稿 + 人工修订）
-d3ac093 实验二 报告修订：表4-1 每条记录显式给出优缺点，表4-2 编号与列宽（人工修改）
-cbcb652 新增 README：仓库结构、重新生成方式与提交约定
-8530f46 实验二 报告：5 章 17 页，新增 AI 工作流与 git 追踪两节（人工撰写，模型辅助扩写）
-478a33c 回改实验一：REQ-017 驳回后状态、REQ-001 幂等键、REQ-009 模块归属（人工修改）
-268e9fc 实验二 UI：10 个界面稿与可交互原型源文件
-33e8c33 实验二 UML：六张图的 PlantUML 源码与渲染图（AI 生成初稿 + 人工修订）
-3c19cd2 补充report.pdf需求分析报告
+9745ea9 实验三 代码留档：git 记录补全到 HEAD，附实验三提交明细
+75bb7a1 实验三 代码留档：补充 git 提交历史与远程地址记录
+e2e555f 实验三 报告：实现与构建报告 26 页，含真实检查与运行输出
+ad62b25 实验三 UML：按实现修订类图，新增服务类图与两张时序图
+31056f2 实验三 代码留档：pylint 前后对比、测试与演示输出、提示词记录
+a66e16a 实验三 代码：19 条需求的 Python 分层实现，22 个文件
+09a2689 实验二 报告修订：表4-1 每条记录显式给出优缺点，表4-2 编号与列宽
+cb3bdc6 新增 README：仓库结构、重新生成方式与提交约定
+2b79a57 实验二 报告：5 章 17 页，新增 AI 工作流与 git 追踪两节
+a16c181 回改实验一：REQ-017 驳回后状态、REQ-001 幂等键、REQ-009 模块归属
+961f4e0 实验二 UI：10 个界面稿与可交互原型源文件
+76f4651 实验二 UML：六张图的 PlantUML 源码与渲染图
 
 === 实验三提交明细 ===
-77f1fc4 实验三 代码留档：补充 git 提交历史与远程地址记录（人工整理）
+9745ea9 实验三 代码留档：git 记录补全到 HEAD，附实验三提交明细
+
+ .../code/docs/git_log.txt"                         | 72 +++++++++++++++++++++-
+ 1 file changed, 70 insertions(+), 2 deletions(-)
+75bb7a1 实验三 代码留档：补充 git 提交历史与远程地址记录
 
  .../code/docs/git_log.txt"                                 | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
-64793b8 实验三 报告：实现与构建报告 26 页，含真实检查与运行输出（人工撰写）
+e2e555f 实验三 报告：实现与构建报告 26 页，含真实检查与运行输出
 
  README.md                                          |  45 +++++-
  src/report3/img/class.png                          | Bin 0 -> 227031 bytes
@@ -42,7 +46,7 @@ cbcb652 新增 README：仓库结构、重新生成方式与提交约定
  src/report3/sec7.tex                               |  46 ++++++
  ...56\236\351\252\214\346\212\245\345\221\212.pdf" | Bin 0 -> 1515458 bytes
  22 files changed, 1109 insertions(+), 4 deletions(-)
-b7cc2cd 实验三 UML：按实现修订类图，新增服务类图与两张时序图（人工修订）
+ad62b25 实验三 UML：按实现修订类图，新增服务类图与两张时序图
 
  ...77\256\346\224\271\345\256\241\346\240\270.png" | Bin 0 -> 171059 bytes
  ...7\256\346\224\271\345\256\241\346\240\270.puml" |  57 ++++++++
@@ -57,26 +61,12 @@ b7cc2cd 实验三 UML：按实现修订类图，新增服务类图与两张时�
  .../UML\347\273\204\344\273\266\345\233\276.png"   | Bin 0 -> 396388 bytes
  .../UML\347\273\204\344\273\266\345\233\276.puml"  |  88 ++++++++++++
  12 files changed, 539 insertions(+)
-128c4c1 实验三 代码留档：pylint 前后对比、测试与演示输出、提示词记录（人工整理）
+31056f2 实验三 代码留档：pylint 前后对比、测试与演示输出、提示词记录
 
- .../code/docs/cli_session.txt"                     | 218 +++++++++++++++++++++
- .../code/docs/compile.txt"                         |   0
- .../code/docs/demo_output.txt"                     |  78 ++++++++
- .../code/docs/loc_stats.txt"                       |   5 +
- .../code/docs/prompts.md"                          |  74 +++++++
- .../code/docs/pylint_final.txt"                    |   6 +
- .../code/docs/pylint_initial.txt"                  |  41 ++++
- .../code/docs/pytest_output.txt"                   |   3 +
- 8 files changed, 425 insertions(+)
-f0937f2 实验三 代码：19 条需求的 Python 分层实现，22 个文件（AI 生成初稿 + 人工修订）
-
- .gitignore                                         |  14 +
- .../code/README.md"                                |  87 ++++
- .../code/campustrade/__init__.py"                  |   8 +
 
 === remote ===
 origin	https://github.com/APY-tech/Software-Engineering.git (fetch)
 origin	https://github.com/APY-tech/Software-Engineering.git (push)
 === branch ===
 ## main...origin/main
- M "\345\256\236\351\252\2143_241220107_\351\273\204\346\257\205/code/docs/git_log.txt"
+ M src/report3/listings/cli.tex

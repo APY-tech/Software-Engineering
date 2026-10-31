@@ -2,7 +2,7 @@
 
 \subsection{转换规则}
 
-UML 里的每种元素在代码里只对应一种写法，规则先定下来，后面 10 个类就是重复劳动，不会出现"这个类用字典、那个类用元组"的随意性（\tabref{tab:mapping}）。
+先定规则再写类，每种 UML 元素只对应一种写法，后面 10 个类就是重复劳动（\tabref{tab:mapping}）。
 
 \begin{table}[htbp]
 \centering
@@ -17,86 +17,48 @@ UML 元素 & 代码构造 & 处理要点 \\
 枚举 & \code{class X(str, Enum)} & 继承 \code{str} 便于 JSON 落盘与命令行按名字解析 \\
 关联（1—N） & 外键字段 + 仓储查询 & 不在实体里挂对象引用，避免循环引用与反序列化困难 \\
 组合（Item—ItemRevision） & 独立表 + 按 \code{itemId} 查 & 待审内容能被单独丢弃，符合"驳回即丢"的语义 \\
-操作（方法） & 服务层方法 & 见 2.3 的修订说明 \\
+操作（方法） & 服务层方法 & 原因见 2.2 节 \\
 状态图 & 迁移表 + \code{apply\_status} & 每条箭头一个表项，非法迁移抛异常 \\
 时序图 & 一个方法体 + 锁 & 消息顺序即语句顺序，\code{alt} 分支即 \code{if/else} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{类图的落地}
+\subsection{类图的落地与三处修订}
 
-领域模型（\figref{fig:class}）是照实验二类图逐类翻译的：\code{User}、\allowbreak \code{Session}、\allowbreak \code{Item}、\allowbreak \code{ItemRevision}、\allowbreak \code{Reservation}、\allowbreak \code{Report}、\allowbreak \code{AuditRecord}、\allowbreak \code{Category}、\allowbreak \code{OperationLog}、\allowbreak \code{Notification} 十个类，加上 \code{Role}、\allowbreak \code{ItemStatus}、\allowbreak \code{ReservationStatus}、\allowbreak \code{ReportState}、\allowbreak \code{AuditResult} 五个枚举，全部落在 \code{models.py} 一个文件里（327 行）。实体只保留"看自己"的判断，例如 \code{Item.is\_public()} 判断能否出现在公开查询里、\code{Item.has\_published\_version} 判断驳回后是回草稿还是继续展示旧信息。
+领域模型（\figref{fig:class}）照实验二类图逐类翻译：10 个实体加 5 个枚举，全部落在 \code{models.py}（327 行）。实体只保留"看自己"的判断，例如 \code{Item.is\_public()} 判断能否出现在公开查询里、\code{has\_published\_version} 判断驳回后是回草稿还是继续展示旧信息。图中 \code{ItemRevision} 是组合状态的载体：已发布商品被修改时 \code{Item.status} 仍是已发布，新内容暂存于待审记录，审核通过后原子替换，驳回则丢弃。\code{Reservation.requestId} 是幂等键，与商品编号一起保证同一商品至多一条有效预约。
 
-
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{class.pdf}
+\caption{领域模型类图（矢量图，可放大查看）}\label{fig:class}
+\end{figure}
 
 服务层与仓储（\figref{fig:service}）是实验二类图里没有的，属于实现期新增的结构：\code{ServiceBase} 统一持有仓储、认证、日志三个依赖，六个业务服务继承它；\code{Store} 是仓储门面，\code{Table} 是泛型内存表，二者是组合关系。
 
-
-
-
-
-
-
-每个类在代码里的位置与关键方法见\tabref{tab:classmap}。
-
-\begin{table}[htbp]
+\begin{figure}[!htbp]
 \centering
-\caption{类与代码位置的对应（行号为该文件起始行）}\label{tab:classmap}
-\zihao{-5}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}{@{}L{2.4cm}L{3.0cm}YL{1.2cm}@{}}
-\toprule
-类 / 枚举 & 文件 & 关键实现 & 起始行 \\
-\midrule
-User、Session、Role & \code{models.py} + \code{services/auth.py} & 口令散列、会话过期判定 & 75 / 39 \\
-Item、ItemStatus & \code{models.py} + \code{services/item.py} & 草稿、修改、送审、下架、公开查询 & 132 / 99 \\
-ItemRevision & \code{models.py} + \code{item.py} & \code{\_stage\_revision} 暂存待审内容 & 168 / 279 \\
-Category & \code{models.py} + \code{item.py} & 分类增删改，被引用则拒绝删除 & 118 / 44 \\
-Reservation & \code{models.py} + \code{services/trade.py} & 幂等预约、取消、确认、完成 & 205 / 32 \\
-Report、ReportState & \code{models.py} + \code{moderation.py} & 重复举报返回原记录、处置复用下架 & 227 / 30 \\
-AuditRecord、AuditResult & \code{models.py} + \code{services/audit.py} & 审核记录只追加、待审内容原子替换 & 187 / 52 \\
-OperationLog、Notification & \code{models.py} + \code{services/journal.py} & 日志只追加、通知收发 & 247 / 24 \\
-状态迁移表 & \code{state.py} & \code{can\_transition} / \code{apply\_status} & 24 / 47 \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\includegraphics[width=0.82\textwidth]{service.pdf}
+\caption{服务层与仓储类图}\label{fig:service}
+\end{figure}
 
-\clearpage
-\begin{sidewaysfigure}
-\centering
-\includegraphics[width=\linewidth]{class.png}
-\caption{领域模型类图（实现版，源码见 UML/UML类图.puml）}\label{fig:class}
-\end{sidewaysfigure}
+实现过程中对原设计改了三处：
 
-\clearpage
-\begin{sidewaysfigure}
-\centering
-\includegraphics[width=0.9\linewidth]{service.png}
-\caption{服务层与仓储类图（源码见 UML/UML服务类图.puml）}\label{fig:service}
-\end{sidewaysfigure}
+\textbf{一是实体上的业务方法上移到服务层。}实验二给 \code{Item} 挂了 \code{submitAudit()}、\allowbreak \code{offShelf()}，给 \code{Reservation} 挂了 \code{cancel()}、\allowbreak \code{confirm()}。真正写的时候发现这些方法都要读别的聚合——送审要看分类是否有效，取消预约要同时改商品状态——实体会被迫持有仓储引用，事务边界也就散了。改成"实体只描述数据与自身判断、服务负责跨实体协作"后，\code{Item.submitAudit()} 变成 \code{ItemService.submit\_audit()}，状态迁移仍由 \code{state} 模块统一校验，规则没丢，只是换了执行者。
 
-\subsection{对实验二类图的三处修订}
+\textbf{二是 \code{ItemRevision} 增加 \code{categoryId}。}原设计只暂存标题、价格、图片，但 REQ-005 允许按分类筛选，改分类同样属于"修改商品信息"，不带上分类会导致审核通过后内容与分类不一致。
 
-实现过程中发现原设计有三处需要改，改动都体现在本报告附带的类图里。
-
-\textbf{第一处：实体上的业务方法上移到服务层。}实验二类图给 \code{Item} 挂了 \code{submitAudit()}、\allowbreak \code{modify()}、\allowbreak \code{offShelf()}，给 \code{Reservation} 挂了 \code{cancel()}、\allowbreak \code{confirm()}、\allowbreak \code{finish()}。真正写的时候发现这些方法都需要读别的聚合（送审要看分类是否有效、取消预约要同时改商品状态），实体会被迫持有仓储引用，事务边界也就散了。改成"实体只描述数据与自身判断、服务负责跨实体协作"之后，\code{Item.submitAudit()} 变成 \code{ItemService.submit\_audit()}，状态迁移仍由 \code{state} 模块统一校验，规则并未丢失，只是换了执行者。
-
-\textbf{第二处：\code{ItemRevision} 增加 \code{categoryId}。}原设计只暂存标题、价格、图片，但需求 REQ-005 允许按分类筛选，卖家改分类同样属于"修改商品信息"，如果不在待审内容里带上分类，审核通过后分类会与内容不一致。加一个字段即可，代价是审核通过时字段替换多一行。
-
-\textbf{第三处：新增 \code{ServiceBase}、\allowbreak \code{Store}、\allowbreak \code{Table} 三个实现类。}它们不是领域概念，是工程结构：\code{ServiceBase} 收敛"令牌换用户"和"落盘"两件重复事；\code{Store}/\code{Table} 提供泛型化的持久化与查询，避免每个服务各写一遍列表遍历。
+\textbf{三是新增 \code{ServiceBase}、\allowbreak \code{Store}、\allowbreak \code{Table} 三个实现类。}它们不是领域概念，是工程结构，分别收敛"令牌换用户与落盘""泛型持久化与查询"这几处重复代码。
 
 \subsection{状态图的落地}
 
-状态图（\figref{fig:state}）的 7 个状态、9 条合法迁移被写成 \code{state.py} 里的一个字典，键是当前状态、值是允许的后继状态集合。\code{apply\_status()} 先 \code{ensure\_transition()} 再赋值，并递增 \code{version}；这个版本号是审核时"重新读取状态"的实现基础（REQ-003）。
+状态图（\figref{fig:state}）的 7 个状态、9 条合法迁移写成 \code{state.py} 里的一个字典，键是当前状态、值是允许的后继集合。\code{apply\_status()} 先校验再赋值，并递增 \code{version}，这个版本号就是审核时"重新读取状态"的实现基础（REQ-003）。非法迁移一律走 \code{Conflict}，例如对已预约商品确认完成、对已完成商品再次下架。
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.36\textwidth]{state.png}
-\caption{商品状态图（沿用实验二，实现未改动其语义）}\label{fig:state}
+\includegraphics[width=0.29\textwidth]{state.pdf}
+\caption{商品状态图（沿用实验二）}\label{fig:state}
 \end{figure}
-
-每条箭头对应的触发动作与校验位置见\tabref{tab:transition}。表里没有出现的组合，代码里都走 \code{Conflict} 分支，例如"对已预约商品确认完成""对已完成商品再次下架"。
 
 \begin{table}[htbp]
 \centering
@@ -113,7 +75,7 @@ OperationLog、Notification & \code{models.py} + \code{services/journal.py} & �
 已发布 $\to$ 已预约 & \code{TradeService.reserve} & 锁内查重；非本人商品；幂等键 \\
 已预约 $\to$ 已发布 & \code{TradeService.cancel} & 仅卖家；预约记录置为已取消 \\
 已预约 $\to$ 已确认 & \code{TradeService.confirm} & 仅卖家；必须有有效预约 \\
-已确认 $\to$ 已完成 & \code{TradeService.finish} & 仅预约买家；\code{auto\_finish\_due} 满 7 天自动完成 \\
+已确认 $\to$ 已完成 & \code{TradeService.finish} & 仅预约买家；满 7 天自动完成 \\
 已发布 $\to$ 已下架 & \code{ItemService.off\_shelf} & 仅本人或管理员；已预约/已确认拒绝 \\
 已下架 $\to$ 已发布 & \code{ItemService.restore} & 仅管理员，卖家不能自行恢复 \\
 \bottomrule
@@ -122,25 +84,25 @@ OperationLog、Notification & \code{models.py} + \code{services/journal.py} & �
 
 \subsection{时序图的落地}
 
-预约是最容易出错的一条流程，实验二已经画出"幂等键 + 唯一有效预约"，实现时按\figref{fig:seq}逐条翻译：\code{alt} 的每个分支对应一个 \code{raise}，\code{with store.lock} 对应时序图上的临界区。代码里查重放在最前，因为重发的请求必须返回原结果，此时商品状态已经是"已预约"，若先校验状态就会把重发误判为冲突。
+预约是最容易出错的一条流程，按\figref{fig:seq}逐条翻译：\code{alt} 的每个分支对应一个 \code{raise}，\code{with store.lock} 对应图上的临界区。查重放在最前，因为重发的请求必须返回原结果，此时商品已是"已预约"，若先校验状态就会把重发误判为冲突。
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{seq_reserve.png}
+\includegraphics[width=0.74\textwidth]{seq_reserve.pdf}
 \caption{预约商品时序图（含幂等重发分支）}\label{fig:seq}
 \end{figure}
 
-修改已发布商品是第二条关键流程（\figref{fig:seq2}）。它把"待审内容"与"商品状态"解耦：修改只写 \code{ItemRevision}，商品仍是已发布、前台仍显示旧信息，因此审核期间买家照常预约；审核通过时在一个方法里替换全部字段并删除待审记录，驳回则只删待审记录。这条流程也是实现期发现设计漏洞的地方——第 3 节案例 1。
+修改已发布商品是第二条关键流程（\figref{fig:seq2}）。它把"待审内容"与"商品状态"解耦：修改只写 \code{ItemRevision}，商品仍是已发布、前台仍显示旧信息，审核期间买家照常预约；审核通过时在一个方法里替换全部字段并删除待审记录，驳回则只删待审记录。
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.82\textwidth]{seq_revision.png}
+\includegraphics[width=0.7\textwidth]{seq_revision.pdf}
 \caption{修改已发布商品与审核时序图}\label{fig:seq2}
 \end{figure}
 
 \subsection{代码规模}
 
-最终交付 22 个源文件、3311 行（含空行与注释），去掉空行与整行注释后为 \textbf{2761 行}，全部为本次手写实现，没有任何 GUI 设计器生成的代码。另有 8 个测试文件、794 行、73 个用例（\tabref{tab:loc}）。
+最终交付 22 个源文件、3311 行（含空行与注释），去掉空行与整行注释后为 \textbf{2761 行}。另有 8 个测试文件、794 行、73 个用例（\tabref{tab:loc}）。其中服务层业务规则约 1186 行，占 43\%。
 
 \begin{table}[htbp]
 \centering
@@ -162,5 +124,3 @@ OperationLog、Notification & \code{models.py} + \code{services/journal.py} & �
 \bottomrule
 \end{tabularx}
 \end{table}
-
-作为对照，实验二设计阶段的产物是 6 张 UML 图与 10 张界面稿，本次实现把它们变成了 2761 行可执行规则：其中约 1186 行（43\%）是服务层的业务规则，界面与基础设施合计 754 行，剩下的是模型与装配。

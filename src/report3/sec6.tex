@@ -1,8 +1,6 @@
 \section{Git 远程代码管理}
 
-\subsection{本地仓库与远程仓库}
-
-本地仓库在 \code{repo/}，远程托管在 GitHub，仓库地址：
+本地仓库在 \code{repo/}，远程托管在 GitHub：
 
 \begin{lstlisting}
 $ git remote -v
@@ -10,24 +8,23 @@ origin  https://github.com/APY-tech/Software-Engineering.git (fetch)
 origin  https://github.com/APY-tech/Software-Engineering.git (push)
 \end{lstlisting}
 
-主分支 \code{main}，实验一、实验二的产物都在同一仓库里，靠提交说明与目录区分，没有另开分支——这门课的交付物是持续演进的同一个项目，分支反而增加合并成本。实验一的两次关键状态另打了标签 \code{lab1-ai-draft} 与 \code{lab1-final}，便于演示"AI 初稿 $\to$ 人工定稿"的差别。
+主分支 \code{main}，三次实验的产物都在同一仓库里，靠目录与提交说明区分，没有另开分支——交付物是持续演进的同一个项目，分支反而增加合并成本。实验一的两次关键状态另打了标签 \code{lab1-ai-draft} 与 \code{lab1-final}，便于对照初稿与定稿。
 
-\subsection{本次实验的提交}
-
-本轮工作拆成三次提交（另有报告与打包一次，见仓库最新记录），见表~\ref{tab:commits}。每次提交只包含一类产物，提交说明末尾标注该次改动属于 AI 生成还是人工修订，可以逐条对上代码。
+本轮工作按"一类产物一次提交"拆开（\tabref{tab:commits}）：代码与它的检查记录分开，报告单独提交，避免 3000 行代码和一份 PDF 混在一个提交里导致 diff 无法阅读。
 
 \begin{table}[htbp]
 \centering
 \caption{本次实验的提交记录}\label{tab:commits}
 \zihao{-5}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}{@{}L{1.8cm}L{1.9cm}YL{2.3cm}@{}}
+\begin{tabularx}{\textwidth}{@{}L{1.8cm}L{1.5cm}Y@{}}
 \toprule
-提交 & 文件数 & 内容 & 标注 \\
+提交 & 文件数 & 内容 \\
 \midrule
-\code{f0937f2} & 34 & 22 个源文件 + 8 个测试文件 + 配置与说明 & AI 生成初稿 + 人工修订 \\
-\code{128c4c1} & 8 & pylint 前后对比、测试与演示输出、代码规模、提示词记录 & 人工整理 \\
-\code{b7cc2cd} & 12 & 类图、服务类图、两张时序图的 puml 与 png & 人工修订 \\
+\code{a66e16a} & 34 & 22 个源文件、8 个测试文件、配置与说明 \\
+\code{31056f2} & 8 & pylint 前后对比、测试与演示输出、代码规模、提示词记录 \\
+\code{ad62b25} & 12 & 类图、服务类图、两张时序图的 puml 与 png \\
+\code{e2e555f} & 20 & 报告 LaTeX 源、插图与编译产物 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -36,12 +33,4 @@ origin  https://github.com/APY-tech/Software-Engineering.git (push)
 
 \lstinputlisting{listings/git.tex}
 
-\subsection{提交粒度的约定}
-
-上一轮实验定下的约定是"一类产物一次提交，说明里写清 AI 生成还是人工修改"，这次沿用并补充了两条：一是\textbf{代码与它的检查记录分开提交}，这样"改了什么代码"和"检查结果如何"两条线各自可追溯；二是\textbf{报告单独提交}，避免把 3000 行代码和一份 PDF 混在一个提交里，导致 diff 无法阅读。
-
-从提交历史能看出实验二的痕迹：\code{478a33c} 是设计期对实验一的回改（REQ-017 驳回后的状态），\code{33e8c33} 是六张 UML 图的初稿，说明里写明"AI 生成初稿 + 人工修订"。本次实验的 \code{f0937f2} 与它是同一种标注方式。
-
-\subsection{入库范围}
-
-\code{.gitignore} 里排除了三类东西：Python 的 \code{\_\_pycache\_\_/}、\code{.pytest\_cache/}；程序运行产生的 \code{code/data/campustrade.json}（可用 \code{--seed} 重建，不占仓库体积）；报告排版的 LaTeX 中间产物（\code{.aux}、\code{.log}、\code{.toc}）。源码、UML 的 puml 与 png、测试、检查记录、报告源与 PDF 都入库。
+\code{.gitignore} 排除了三类东西：Python 的 \code{\_\_pycache\_\_/} 与 \code{.pytest\_cache/}；程序运行产生的 \code{code/data/campustrade.json}（可用 \code{--seed} 重建，不占仓库体积）；LaTeX 中间产物（\code{.aux}、\code{.log}、\code{.toc}）。源码、UML 的 puml 与图、测试、检查记录、报告源与 PDF 都入库。

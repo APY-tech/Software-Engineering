@@ -73,11 +73,31 @@ def condense_menu(text: str) -> str:
             continue
         if not line.strip() and kept and not kept[-1].strip():
             continue
+        if line.strip().startswith("当前身份：未登录") and kept:
+            continue          # 登出提示，与下一步登录重复
         if (line.strip().startswith("当前身份") and kept
                 and kept[-1].strip() == line.strip()):
             continue
         kept.append(line.rstrip())
     return "\n".join(kept).strip("\n") + "\n"
+
+
+def excerpt_demo(text: str) -> str:
+    """演示脚本共 11 节，报告只保留正文点名的 1、4、7、9、10 节。"""
+    keep = {"1", "4", "7", "9", "10"}
+    out: list[str] = []
+    skipping = False
+    for line in text.splitlines():
+        head = re.match(r"=== (\d+)\.", line)
+        if head:
+            if skipping:
+                out.append("  ……（本节略）")
+            skipping = head.group(1) not in keep
+            if skipping:
+                continue
+        if not skipping:
+            out.append(line)
+    return "\n".join(out).strip("\n") + "\n"
 
 
 def write(name: str, text: str) -> None:
@@ -89,7 +109,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
 
     demo = (DOCS / "demo_output.txt").read_text(encoding="utf-8")
-    write("demo.tex", wrap(polish(demo)))
+    write("demo.tex", wrap(polish(excerpt_demo(demo))))
 
     cli = (DOCS / "cli_session.txt").read_text(encoding="utf-8")
     write("cli.tex", wrap(polish(condense_menu(cli))))
@@ -108,7 +128,11 @@ def main() -> None:
     write("pytest.tex", pytest_out)
 
     git_log = (DOCS / "git_log.txt").read_text(encoding="utf-8")
-    write("git.tex", git_log)
+    lines = git_log.splitlines()
+    picked = [line for line in lines
+              if line.startswith(("=== git log", "origin", "## "))
+              or (line[:7].isalnum() and " " in line)]
+    write("git.tex", "\n".join(picked) + "\n")
 
 
 if __name__ == "__main__":
