@@ -1,0 +1,48 @@
+@startuml UML状态图
+' ===== 校园二手交易系统 状态图（商品生命周期状态机） =====
+' 学号：241220107  姓名：黄毅
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 200
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #4A5C6E
+skinparam state {
+  BackgroundColor #F2F7EC
+  BorderColor #5F7A52
+  FontColor #23331A
+  StartColor #4A5C6E
+  EndColor #4A5C6E
+}
+
+top to bottom direction
+
+
+[*] --> 草稿 : 卖家创建草稿
+
+草稿 --> 待审核 : 提交审核
+待审核 --> 草稿 : 审核驳回
+待审核 --> 已发布 : 审核通过
+
+state 已发布 {
+  展示中 : 展示版本
+  修改待审 : 新内容待审
+  [*] --> 展示中
+  展示中 --> 修改待审 : 卖家修改
+  修改待审 --> 展示中 : 审核通过原子替换
+  修改待审 --> 展示中 : 驳回丢弃新内容
+}
+
+已发布 --> 已预约 : 买家预约成功
+已预约 --> 已发布 : 卖家取消预约
+已预约 --> 已确认 : 卖家确认交易
+已确认 --> 已完成 : 买家确认完成
+已确认 --> 已完成 : 满 7 天自动完成
+已发布 --> 已下架 : 卖家下架
+已预约 --> 已下架 : 管理员处置举报
+
+已完成 --> [*]
+已下架 --> [*]
+
+@enduml

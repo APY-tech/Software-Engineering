@@ -1,0 +1,98 @@
+@startuml UML活动图
+' ===== 校园二手交易系统 活动图（商品交易主流程） =====
+' 学号：241220107  姓名：黄毅
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 200
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam ArrowColor #4A5C6E
+skinparam activity {
+  BackgroundColor #F2F7EC
+  BorderColor #5F7A52
+  FontColor #23331A
+  DiamondBackgroundColor #FDF6E3
+  DiamondBorderColor #A9764A
+}
+skinparam swimlaneBorderColor #92A5B7
+skinparam swimlaneTitleFontStyle bold
+
+
+|卖家|
+start
+:P1 创建商品草稿;
+:P2 填写标题、描述、价格、分类、图片;
+if (P3 必填字段是否完整？) then (否)
+  :提示缺失字段，保留草稿;
+  stop
+else (是)
+  :P4 提交审核，状态改为「待审核」;
+endif
+
+|管理员|
+:P5 从待审核队列领取商品;
+:P6 重新读取商品当前状态与版本;
+if (P7 当前仍为待审核？) then (否)
+  :拒绝操作并提示状态已变更;
+  stop
+else (是)
+endif
+if (P8 内容是否合规？) then (驳回)
+  |管理员|
+  :P9 记录驳回原因，退回「草稿」;
+  |卖家|
+  :P10 按意见修改后重新提交;
+  stop
+else (通过)
+  |管理员|
+  :P11 写入审核记录，状态改为「已发布」;
+endif
+
+|买家|
+:P13 关键词 / 分类 / 价格 / 状态筛选;
+:P14 浏览商品详情;
+:P15 点击「预约」;
+|系统|
+:P16 校验登录态、商品归属与当前状态;
+if (P17 商品为已发布且当前用户非卖家？) then (是)
+  :P18 以 requestId 幂等键创建预约;
+  if (P19 唯一索引冲突（已被他人预约）？) then (是)
+    :P20 返回「该商品已被预约」;
+    stop
+  else (否)
+    :P21 商品状态改为「已预约」，通知卖家;
+  endif
+else (否)
+  :P22 拒绝并提示刷新页面;
+  stop
+endif
+
+|卖家|
+if (P23 是否确认这笔交易？) then (取消)
+  :P24 取消预约，商品恢复「已发布」;
+  :P25 通知买家，记录操作日志;
+  stop
+else (确认)
+  :P26 状态改为「已确认」，记录确认时间;
+endif
+
+|买家|
+:P27 线下验货与交付;
+if (P28 是否主动确认完成？) then (是)
+  :P29 校验当前买家即预约买家;
+  :P30 状态改为「已完成」;
+else (否)
+  |系统|
+  :P31 每日扫描「已确认满 7 天」的预约;
+  :P32 自动置为「已完成」;
+  |买家|
+  :P33 收到完成通知;
+endif
+
+|系统|
+:P34 追加操作日志;
+:P35 汇总进入统计;
+stop
+
+@enduml

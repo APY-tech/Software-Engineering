@@ -1,0 +1,98 @@
+@startuml UML用例图
+' ===== 校园二手交易系统 用例图 =====
+' 学号：241220107  姓名：黄毅
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 200
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam nodesep 16
+skinparam ranksep 70
+left to right direction
+
+skinparam usecase {
+  BackgroundColor #F2F7EC
+  BorderColor #5F7A52
+  FontColor #23331A
+}
+skinparam actor {
+  BackgroundColor #FBEFE3
+  BorderColor #A9764A
+}
+skinparam arrowColor #4A5C6E
+
+
+actor "访客 Guest" as Guest
+actor "普通用户\n买家 / 卖家" as User
+actor "管理员 Admin" as Admin
+actor "系统调度\nScheduler" as Timer
+
+rectangle "校园二手交易系统" {
+  usecase "注册账号" as UC01
+  usecase "登录系统" as UC02
+  usecase "维护个人资料" as UC03
+  usecase "保存商品草稿" as UC04
+  usecase "提交审核" as UC05
+  usecase "修改已发布商品" as UC06
+  usecase "下架本人商品" as UC07
+  usecase "维护商品分类" as UC08
+  usecase "多条件筛选查询" as UC09
+  usecase "查看商品详情" as UC10
+  usecase "预约商品" as UC11
+  usecase "取消预约" as UC12
+  usecase "卖家确认交易" as UC13
+  usecase "买家确认完成" as UC14
+  usecase "超时自动完成" as UC15
+  usecase "审核商品" as UC16
+  usecase "查看审核历史" as UC17
+  usecase "提交举报" as UC18
+  usecase "处理举报" as UC19
+  usecase "查看个人交易统计" as UC20
+  usecase "查看全站统计" as UC21
+  usecase "查询操作日志" as UC22
+  usecase "校验必填字段" as UC23
+  usecase "校验商品状态与\n唯一有效预约" as UC24
+  usecase "下架违规商品" as UC25
+}
+
+' ---- 访客 ----
+Guest --> UC01
+Guest --> UC02
+Guest --> UC09
+Guest --> UC10
+
+' ---- 普通用户 ----
+User --> UC02
+User --> UC03
+User --> UC04
+User --> UC05
+User --> UC06
+User --> UC07
+User --> UC09
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+User --> UC14
+User --> UC17
+User --> UC18
+User --> UC20
+
+' ---- 管理员 ----
+Admin --> UC02
+Admin --> UC08
+Admin --> UC16
+Admin --> UC19
+Admin --> UC21
+Admin --> UC22
+
+' ---- 系统 ----
+Timer --> UC15
+
+' ---- 包含与扩展 ----
+UC05 ..> UC23 : <<include>>
+UC11 ..> UC24 : <<include>>
+UC19 ..> UC25 : <<extend>>
+
+@enduml

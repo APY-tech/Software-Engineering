@@ -1,0 +1,100 @@
+@startuml UML时序图
+' ===== 校园二手交易系统 时序图（商品预约：幂等与并发控制） =====
+' 学号：241220107  姓名：黄毅
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 200
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam sequenceArrowThickness 1.2
+skinparam sequenceMessageAlign left
+skinparam ArrowColor #3F5468
+skinparam participant {
+  BackgroundColor #EDF3F8
+  BorderColor #4A5C6E
+  FontColor #1F2E3D
+}
+skinparam actorBorderColor #A9764A
+skinparam actorBackgroundColor #FBEFE3
+skinparam noteBackgroundColor #FDF6E3
+skinparam noteBorderColor #A9764A
+skinparam sequenceGroupBackgroundColor #F7F9FB
+skinparam sequenceGroupBorderColor #92A5B7
+
+
+autonumber
+
+actor 买家 as B
+participant "商品详情页\n(用户端)" as UI
+participant "预约服务\nTradeService" as S
+participant "权限校验\nAccessGuard" as G
+participant "商品仓储\nItemRepository" as R
+database "MySQL" as DB
+participant "通知组件\nNotify" as N
+participant "日志服务\nLogService" as L
+
+B -> UI : 点击「预约」
+UI -> S : POST /reservations\n{itemId, requestId}
+activate S
+
+S -> G : 校验会话、资源归属与商品状态
+activate G
+G --> S : 通过 / 拒绝
+deactivate G
+
+alt 校验不通过（未登录 / 本人商品 / 非已发布）
+  S --> UI : 403 / 409 + 错误提示
+  UI --> B : 提示「无法预约该商品」
+  S -> L : 记录失败操作与原因
+else 校验通过
+  S -> DB : 查询 (itemId, requestId) 是否已存在
+  activate DB
+  DB --> S : 查询结果
+  deactivate DB
+
+  alt 请求标识已存在（重复提交）
+    S --> UI : 200 返回原预约记录（幂等，不重复创建）
+    UI --> B : 展示已有预约信息
+  else 首次请求
+    S -> DB : BEGIN TRANSACTION
+    S -> R : lockById(itemId)（SELECT ... FOR UPDATE）
+    activate R
+    R --> S : item（status = PUBLISHED）
+    deactivate R
+
+    alt 生成预约记录
+      S -> DB : INSERT reservation\n(itemId, buyerId, requestId, EFFECTIVE)
+      activate DB
+      alt 唯一索引冲突（并发被他人抢先）
+        DB --> S : DuplicateKeyException
+        S -> DB : ROLLBACK
+        S --> UI : 409 「该商品已被预约」
+        UI --> B : 提示商品已被他人预约
+      else 插入成功
+        S -> DB : UPDATE item SET status = RESERVED
+        DB --> S : 影响行数 = 1
+        deactivate DB
+        S -> DB : COMMIT
+        S -> N : 通知卖家「有新的预约」
+        S -> L : 追加操作日志（预约成功）
+        S --> UI : 200 预约成功
+        UI --> B : 页面状态更新为「已预约」
+      end
+    end
+  end
+end
+
+deactivate S
+
+note over S, DB
+  事务 + 行锁 + 唯一索引三者配合，
+  保证并发下同一商品仅一条有效预约；
+  requestId 保证网络重发不重复创建（REQ-001）
+end note
+
+note over G
+  权限判定同时校验角色、资源归属与业务状态（REQ-016）
+end note
+
+@enduml

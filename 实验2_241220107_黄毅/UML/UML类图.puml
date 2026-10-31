@@ -1,0 +1,170 @@
+@startuml UML类图
+' ===== 校园二手交易系统 类图 =====
+' 学号：241220107  姓名：黄毅
+' 说明：以领域模型为核心的类图，服务层职责见组件图与报告 3.2 节
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 200
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 13
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 46
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor #FDFDFB
+  BorderColor #4A5C6E
+  ArrowColor #4A5C6E
+  HeaderBackgroundColor #E8EEF4
+}
+skinparam package {
+  BackgroundColor #F6F8FA
+  BorderColor #92A5B7
+  FontColor #2F4256
+  FontStyle bold
+}
+hide circle
+
+
+package "① 用户与权限" as P1 {
+  class User as "User 用户" {
+    -userId: Long
+    -studentNo: String
+    -passwordHash: String
+    -role: Role
+    -accountState: AccountState
+    +login(studentNo, pwd): Session
+  }
+  enum Role as "Role 角色" {
+    USER
+    ADMIN
+  }
+  class Session as "Session 会话" {
+    -token: String
+    -expireAt: DateTime
+    +isValid(): boolean
+  }
+}
+
+package "② 商品与审核" as P2 {
+  class Item as "Item 商品" {
+    -itemId: Long
+    -title: String
+    -price: Decimal
+    -images: List<String>
+    -status: ItemStatus
+    -version: int
+    +submitAudit(): void
+    +modify(dto): void
+    +offShelf(reason): void
+  }
+  class ItemRevision as "ItemRevision 待审修改" {
+    -revisionId: Long
+    -title: String
+    -price: Decimal
+    -submitAt: DateTime
+  }
+  class Category as "Category 分类" {
+    -categoryId: Long
+    -name: String
+    +isUsed(): boolean
+  }
+  class AuditRecord as "AuditRecord 审核记录" {
+    -auditId: Long
+    -adminId: Long
+    -result: AuditResult
+    -reason: String
+    -auditAt: DateTime
+  }
+  enum ItemStatus as "ItemStatus 商品状态" {
+    DRAFT
+    AUDITING
+    PUBLISHED
+    RESERVED
+    CONFIRMED
+    FINISHED
+    OFF_SHELF
+  }
+}
+
+package "③ 交易" as P3 {
+  class Reservation as "Reservation 预约记录" {
+    -reservationId: Long
+    -buyerId: Long
+    -requestId: String
+    -status: ReservationStatus
+    -createAt: DateTime
+    -confirmAt: DateTime
+    +cancel(): void
+    +confirm(): void
+    +finish(): void
+  }
+  enum ReservationStatus as "ReservationStatus" {
+    EFFECTIVE
+    CANCELLED
+    CONFIRMED
+    FINISHED
+  }
+}
+
+package "④ 治理与统计" as P4 {
+  class Report as "Report 举报记录" {
+    -reportId: Long
+    -reporterId: Long
+    -reasonType: String
+    -state: ReportState
+    -handlerId: Long
+    +handle(action): void
+  }
+  enum ReportState as "ReportState 状态" {
+    PENDING
+    OFF_SHELF
+    REJECTED
+  }
+  class OperationLog as "OperationLog 操作日志" {
+    -logId: Long
+    -operatorId: Long
+    -actionType: String
+    -targetId: Long
+    -result: boolean
+    -logAt: DateTime
+  }
+  class Notification as "Notification 通知" {
+    -notifyId: Long
+    -receiverId: Long
+    -type: String
+    -content: String
+    -read: boolean
+  }
+}
+
+' ================= 关联关系 =================
+User "1" -down- "1" Session : 登录后持有 >
+User "1" -down- "0..*" Item : 发布 <
+User "1" -down- "0..*" Reservation : 作为买家预约 <
+User "1" -down- "0..*" Report : 提交 <
+
+Item "1" -down- "0..1" ItemRevision : 修改时生成 >
+Item "0..*" -right-> "1" Category : 归属 >
+Item "1" -down- "0..*" AuditRecord : 审核历史 >
+Item "1" -down- "0..*" Reservation : 预约历史 >
+Item "1" -down- "0..*" Report : 被举报 >
+Item ..> ItemStatus : 当前状态 >
+
+Reservation ..> ReservationStatus
+Report ..> ReportState
+User ..> Role
+
+note bottom of ItemRevision
+  组合状态载体：已发布商品被修改时 Item.status 仍为 PUBLISHED
+  （前台展示旧信息），新内容暂存于 ItemRevision 并进入审核，
+  审核通过后原子替换并清空，避免审核期间出现信息空窗。
+end note
+
+note bottom of Reservation
+  requestId 为幂等键，(itemId, requestId) 唯一；
+  对 EFFECTIVE 状态建唯一索引，保证同一商品至多一条有效预约。
+end note
+
+@enduml
