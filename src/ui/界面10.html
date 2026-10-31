@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="app-admin.css"><style></style></head><body>
+<div class="app">
+  <div class="side">
+    <div class="brand"><div class="logo">校</div><div><div class="nm">校园二手 · 后台</div><div class="sub">CampusTrade Admin</div></div></div>
+    <div class="nav">
+      <div class="grp">运营管理</div>
+      <div class="item"><span class="dot"></span>审核工作台</div><div class="item on"><span class="dot"></span>举报处理</div><div class="item"><span class="dot"></span>操作日志</div><div class="item"><span class="dot"></span>数据统计</div><div class="item"><span class="dot"></span>分类管理</div>
+    </div>
+    <div class="foot">v1.0 · 241220107 黄毅</div>
+  </div>
+  <div class="main">
+    <div class="top">
+      <h1>举报处理</h1><div class="crumb">运营管理 / 违规处置</div>
+      <div class="right">
+        <div style="width:200px;height:30px;border-radius:15px;background:#F1F4F8;display:flex;align-items:center;padding:0 12px;gap:7px;color:#96A3B2;font-size:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>搜索商品 / 用户</div>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 16v-4a6 6 0 10-12 0v4l-2 2h16l-2-2z"/><path d="M10 21h4"/></svg>
+        <div class="avatar">黄</div>
+        <div class="who"><b>黄毅</b><span>系统管理员</span></div>
+      </div>
+    </div>
+    <div class="content">
+<div class="kpis">
+  <div class="kpi"><div class="t">待处理举报</div><div class="v" style="color:#C0393D;">3</div><div class="d warn">其中 1 条涉及违禁物品</div></div>
+  <div class="kpi"><div class="t">今日已处理</div><div class="v">7</div><div class="d">平均处理时长 1.2 小时</div></div>
+  <div class="kpi"><div class="t">本月处置下架</div><div class="v">14</div><div class="d" style="color:#C0393D;">占比 31%</div></div>
+  <div class="kpi"><div class="t">有效举报率</div><div class="v">68.4%</div><div class="d">恶意举报将限制账号</div></div>
+</div>
+<div style="display:flex;gap:14px;flex:1;min-height:0;">
+  <div class="panel" style="flex:1.35;min-width:0;">
+    <div class="ph"><b>举报列表</b>
+      <div style="display:flex;gap:6px;margin-left:14px;"><span class="tag green">待处理 3</span><span class="tag gray">已下架</span><span class="tag gray">已驳回</span></div>
+      <div class="sp">按举报时间倒序</div>
+    </div>
+    <div class="scroll" style="flex:1;">
+      <table>
+        <thead><tr><th>被举报商品</th><th>举报人</th><th>原因</th><th>举报时间</th><th>状态</th></tr></thead>
+        <tbody><tr class="on">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#9FC6B3,#6FAF92)"></div>
+    <div class="nm">高等数学 第七版 上下册</div></div></td>
+  <td>王同学</td><td>价格欺诈</td><td class="muted">10-26 08:12</td>
+  <td><span class="tag green">待处理</span></td></tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#D9B0B0,#B97C7C)"></div>
+    <div class="nm">代写课程设计 可加急</div></div></td>
+  <td>李同学</td><td>违禁物品</td><td class="muted">10-25 22:40</td>
+  <td><span class="tag green">待处理</span></td></tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#C6B4CE,#9A85A6)"></div>
+    <div class="nm">罗技机械键盘 青轴</div></div></td>
+  <td>陈同学</td><td>虚假信息</td><td class="muted">10-25 20:11</td>
+  <td><span class="tag green">待处理</span></td></tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#E6C3A6,#CE9C77)"></div>
+    <div class="nm">考研英语真题 全新</div></div></td>
+  <td>赵同学</td><td>侵权盗版</td><td class="muted">10-25 15:02</td>
+  <td><span class="tag red">已下架</span></td></tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#9FB3CE,#6B87AC)"></div>
+    <div class="nm">iPad 9代 64G</div></div></td>
+  <td>刘同学</td><td>其他</td><td class="muted">10-24 11:36</td>
+  <td><span class="tag gray">已驳回</span></td></tr></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--sub);">共 3 条待处理 · 已按规则去重（同一用户对同一商品仅一条待处理举报）</div>
+  </div>
+
+  <div class="panel" style="flex:1;min-width:0;">
+    <div class="ph"><b>举报处理</b><div class="sp">REP-20261026-0031</div></div>
+    <div class="detail scroll" style="flex:1;">
+      <div style="display:flex;gap:11px;">
+        <div style="width:70px;height:70px;border-radius:9px;background:linear-gradient(135deg,#9FC6B3,#6FAF92);flex:0 0 70px;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13.5px;font-weight:700;line-height:1.45;">高等数学 第七版 上下册 同济大学出版社</div>
+          <div style="font-size:11.5px;color:var(--sub);margin-top:6px;">卖家：李同学 · 当前状态 <span class="tag green">已发布</span></div>
+        </div>
+      </div>
+      <div class="kv" style="margin-top:12px;"><span class="k">举报类型</span><span class="v"><span class="tag orange">价格欺诈</span></span></div>
+      <div class="kv"><span class="k">举报人</span><span class="v">王同学（241220088）</span></div>
+      <div class="kv"><span class="k">举报时间</span><span class="v">10-26 08:12</span></div>
+      <div class="kv" style="border-bottom:none;"><span class="k">历史举报</span><span class="v">该商品累计被举报 2 次</span></div>
+
+      <div style="font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:10px;background:#FAFBFC;border-radius:8px;padding:9px 11px;">
+        <b style="color:var(--ink-2);">举报说明：</b>商品页面标价 ¥28，联系卖家后要求 ¥58 才发货，与页面价格严重不符。
+      </div>
+
+      <div style="font-size:12px;font-weight:700;margin-top:13px;margin-bottom:8px;">处理动作</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:9px;border:1px solid #0E9F6E;background:#F3FAF7;border-radius:9px;padding:9px 11px;">
+          <span style="width:16px;height:16px;border-radius:8px;border:2px solid #0E9F6E;display:flex;align-items:center;justify-content:center;"><span style="width:7px;height:7px;border-radius:4px;background:#0E9F6E;"></span></span>
+          <div><div style="font-size:12.5px;font-weight:700;color:#0A7C56;">下架该商品并通知卖家</div>
+            <div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">商品状态变为「已下架」，不再出现在公开查询结果，且不能被预约</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;">
+          <span style="width:16px;height:16px;border-radius:8px;border:2px solid #D3DBE4;"></span>
+          <div><div style="font-size:12.5px;font-weight:700;">驳回举报</div>
+            <div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">记录驳回理由，商品保持原状态</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;margin-top:12px;">
+        <div class="btn ghost" style="flex:1;">查看卖家历史</div>
+        <div class="btn primary" style="flex:1;">提交处理结果</div>
+      </div>
+      <div style="font-size:10.5px;color:#9AA8B8;margin-top:7px;line-height:1.6;">已处理举报不能重复处理；处置动作与理由将写入举报记录与操作日志，卖家可通过通知查看结果。</div>
+    </div>
+  </div>
+</div>
+</div>
+  </div>
+</div></body></html>

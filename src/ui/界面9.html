@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="app-admin.css"><style></style></head><body>
+<div class="app">
+  <div class="side">
+    <div class="brand"><div class="logo">校</div><div><div class="nm">校园二手 · 后台</div><div class="sub">CampusTrade Admin</div></div></div>
+    <div class="nav">
+      <div class="grp">运营管理</div>
+      <div class="item on"><span class="dot"></span>审核工作台</div><div class="item"><span class="dot"></span>举报处理</div><div class="item"><span class="dot"></span>操作日志</div><div class="item"><span class="dot"></span>数据统计</div><div class="item"><span class="dot"></span>分类管理</div>
+    </div>
+    <div class="foot">v1.0 · 241220107 黄毅</div>
+  </div>
+  <div class="main">
+    <div class="top">
+      <h1>审核工作台</h1><div class="crumb">运营管理 / 商品审核</div>
+      <div class="right">
+        <div style="width:200px;height:30px;border-radius:15px;background:#F1F4F8;display:flex;align-items:center;padding:0 12px;gap:7px;color:#96A3B2;font-size:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>搜索商品 / 用户</div>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 16v-4a6 6 0 10-12 0v4l-2 2h16l-2-2z"/><path d="M10 21h4"/></svg>
+        <div class="avatar">黄</div>
+        <div class="who"><b>黄毅</b><span>系统管理员</span></div>
+      </div>
+    </div>
+    <div class="content">
+<div class="kpis">
+  <div class="kpi"><div class="t">待审核</div><div class="v" style="color:#C25A16;">12</div><div class="d warn">最早提交距今 6 小时</div></div>
+  <div class="kpi"><div class="t">今日通过</div><div class="v">26</div><div class="d">平均处理时长 42 分钟</div></div>
+  <div class="kpi"><div class="t">今日驳回</div><div class="v">3</div><div class="d" style="color:#C0393D;">主要原因为图片与描述不符</div></div>
+  <div class="kpi"><div class="t">审核通过率（近 7 天）</div><div class="v">89.6%</div><div class="d">共处理 214 条</div></div>
+</div>
+<div style="display:flex;gap:14px;flex:1;min-height:0;">
+  <div class="panel" style="flex:1.35;min-width:0;">
+    <div class="ph"><b>待审核队列</b>
+      <div style="display:flex;gap:6px;margin-left:14px;">
+        <span class="tag green">待审核 12</span><span class="tag gray">已通过</span><span class="tag gray">已驳回</span>
+      </div>
+      <div class="sp">按提交时间排序</div>
+    </div>
+    <div class="scroll" style="flex:1;">
+      <table>
+        <thead><tr><th>商品</th><th>卖家</th><th>分类</th><th>价格</th><th>提交时间</th><th>类型</th></tr></thead>
+        <tbody><tr class="on">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#9FC6B3,#6FAF92)"></div>
+    <div><div class="nm">高等数学 第七版 上下册 同济大学出版社</div><div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">ID 20261024</div></div></div></td>
+  <td>李同学</td><td>教材书籍</td><td style="color:#F4511E;font-weight:700;">¥28</td><td class="muted">10-26 09:12</td>
+  <td><span class="tag gray">首次提交</span></td>
+</tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#C6B4CE,#9A85A6)"></div>
+    <div><div class="nm">罗技机械键盘 青轴 附手托（修改待审）</div><div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">ID 20261025</div></div></div></td>
+  <td>陈同学</td><td>数码电子</td><td style="color:#F4511E;font-weight:700;">¥180</td><td class="muted">10-26 08:40</td>
+  <td><span class="tag orange">修改待审</span></td>
+</tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#F0CBA0,#D6A26B)"></div>
+    <div><div class="nm">宿舍静音小风扇 可摇头</div><div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">ID 20261026</div></div></div></td>
+  <td>王同学</td><td>生活用品</td><td style="color:#F4511E;font-weight:700;">¥35</td><td class="muted">10-25 21:05</td>
+  <td><span class="tag gray">首次提交</span></td>
+</tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#E6C3A6,#CE9C77)"></div>
+    <div><div class="nm">考研英语真题 2015-2024 全新</div><div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">ID 20261027</div></div></div></td>
+  <td>赵同学</td><td>教材书籍</td><td style="color:#F4511E;font-weight:700;">¥22</td><td class="muted">10-25 19:33</td>
+  <td><span class="tag gray">首次提交</span></td>
+</tr><tr class="">
+  <td><div class="goods"><div class="th" style="background:linear-gradient(135deg,#B9C79C,#8FA36B)"></div>
+    <div><div class="nm">捷安特山地车 21速 27.5寸</div><div style="font-size:10.5px;color:#9AA8B8;margin-top:2px;">ID 20261028</div></div></div></td>
+  <td>刘同学</td><td>运动户外</td><td style="color:#F4511E;font-weight:700;">¥460</td><td class="muted">10-25 17:20</td>
+  <td><span class="tag gray">首次提交</span></td>
+</tr></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--line);display:flex;align-items:center;font-size:11.5px;color:var(--sub);">
+      共 12 条 · 每页 20 条 <span style="margin-left:auto;">上一页　<b style="color:var(--ink)">1</b>　下一页</span>
+    </div>
+  </div>
+
+  <div class="panel" style="flex:1;min-width:0;">
+    <div class="ph"><b>审核详情</b><div class="sp">ID 20261024</div></div>
+    <div class="detail scroll" style="flex:1;">
+      <div style="display:flex;gap:11px;">
+        <div style="width:78px;height:78px;border-radius:9px;background:linear-gradient(135deg,#9FC6B3,#6FAF92);flex:0 0 78px;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13.5px;font-weight:700;line-height:1.45;">高等数学 第七版 上下册 同济大学出版社</div>
+          <div style="color:#F4511E;font-weight:800;font-size:17px;margin-top:6px;">¥28</div>
+        </div>
+      </div>
+      <div style="font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:10px;background:#FAFBFC;border-radius:8px;padding:9px 11px;">
+        上下册合售，线代与微积分部分有少量笔记，书角略有磨损，不影响阅读。可当面验货。
+      </div>
+      <div style="margin-top:12px;">
+        <div class="kv"><span class="k">卖家</span><span class="v">李同学 · 计算机学院 · 在售 5 件</span></div>
+        <div class="kv"><span class="k">分类</span><span class="v">教材书籍 / 九成新</span></div>
+        <div class="kv"><span class="k">交易地点</span><span class="v">学生活动中心 1F</span></div>
+        <div class="kv" style="border-bottom:none;"><span class="k">审核类型</span><span class="v">首次提交</span></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:7px;">驳回原因（驳回时必填）</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <span class="tag gray" style="height:26px;padding:0 10px;font-weight:400;">图片与实物不符</span>
+          <span class="tag gray" style="height:26px;padding:0 10px;font-weight:400;">描述含联系方式</span>
+          <span class="tag gray" style="height:26px;padding:0 10px;font-weight:400;">疑似违禁物品</span>
+          <span class="tag gray" style="height:26px;padding:0 10px;font-weight:400;">分类错误</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:9px;margin-top:14px;">
+        <div class="btn primary" style="flex:1;height:34px;">审核通过并发布</div>
+        <div class="btn danger" style="flex:1;height:34px;">驳回并退回草稿</div>
+      </div>
+      <div style="font-size:10.5px;color:#9AA8B8;margin-top:7px;line-height:1.6;">审核前系统已重新读取商品当前状态与版本，非「待审核」状态不可执行审核；本次操作人与时间将写入审核记录。</div>
+
+      <div style="font-size:12px;font-weight:700;margin-top:14px;">审核历史</div>
+      <div class="timeline">
+        <div class="it"><div class="d"></div><div class="c">10-26 09:12 卖家提交审核<span>（首次提交）</span></div></div>
+        <div class="it"><div class="d gray"></div><div class="c">— 尚无历史审核记录</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+  </div>
+</div></body></html>

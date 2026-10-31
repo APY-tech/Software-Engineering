@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="app-admin.css"><style></style></head><body>
+<div class="app">
+  <div class="side">
+    <div class="brand"><div class="logo">校</div><div><div class="nm">校园二手 · 后台</div><div class="sub">CampusTrade Admin</div></div></div>
+    <div class="nav">
+      <div class="grp">运营管理</div>
+      <div class="item"><span class="dot"></span>审核工作台</div><div class="item"><span class="dot"></span>举报处理</div><div class="item"><span class="dot"></span>操作日志</div><div class="item on"><span class="dot"></span>数据统计</div><div class="item"><span class="dot"></span>分类管理</div>
+    </div>
+    <div class="foot">v1.0 · 241220107 黄毅</div>
+  </div>
+  <div class="main">
+    <div class="top">
+      <h1>数据统计</h1><div class="crumb">运营管理 / 统计分析</div>
+      <div class="right">
+        <div style="width:200px;height:30px;border-radius:15px;background:#F1F4F8;display:flex;align-items:center;padding:0 12px;gap:7px;color:#96A3B2;font-size:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>搜索商品 / 用户</div>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 16v-4a6 6 0 10-12 0v4l-2 2h16l-2-2z"/><path d="M10 21h4"/></svg>
+        <div class="avatar">黄</div>
+        <div class="who"><b>黄毅</b><span>系统管理员</span></div>
+      </div>
+    </div>
+    <div class="content">
+<div style="display:flex;align-items:center;gap:10px;">
+  <div style="display:flex;gap:6px;">
+    <span class="tag green" style="height:28px;padding:0 12px;">近 7 天</span>
+    <span class="tag gray" style="height:28px;padding:0 12px;">近 30 天</span>
+    <span class="tag gray" style="height:28px;padding:0 12px;">本学期</span>
+  </div>
+  <div class="btn ghost" style="height:28px;">导出报表</div>
+  <div style="margin-left:auto;font-size:11.5px;color:var(--sub);">统计口径：已完成的预约计为一次成交；时间范围开始晚于结束将返回参数错误</div>
+</div>
+<div class="kpis">
+  <div class="kpi"><div class="t">商品总数</div><div class="v">1,482</div><div class="d">较上周 +6.2%</div></div>
+  <div class="kpi"><div class="t">用户总数</div><div class="v">936</div><div class="d">较上周 +3.1%</div></div>
+  <div class="kpi"><div class="t">累计成交</div><div class="v">418</div><div class="d">成交额 ¥37,426</div></div>
+  <div class="kpi"><div class="t">举报处理率</div><div class="v">96.4%</div><div class="d warn">3 条待处理</div></div>
+</div>
+<div style="display:flex;gap:14px;flex:1.35;min-height:0;">
+  <div class="panel" style="flex:1.5;">
+    <div class="ph"><b>近 14 天成交趋势</b><div class="sp">单位：笔</div></div>
+    <div style="padding:14px 18px;flex:1;">
+      <svg width="100%" height="180" viewBox="0 0 540 150" preserveAspectRatio="none">
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0E9F6E" stop-opacity=".22"/><stop offset="100%" stop-color="#0E9F6E" stop-opacity="0"/>
+        </linearGradient></defs>
+        <line x1="0" y1="20" x2="540" y2="20" stroke="#EFF3F7" stroke-width="1"/><line x1="0" y1="50" x2="540" y2="50" stroke="#EFF3F7" stroke-width="1"/><line x1="0" y1="80" x2="540" y2="80" stroke="#EFF3F7" stroke-width="1"/><line x1="0" y1="110" x2="540" y2="110" stroke="#EFF3F7" stroke-width="1"/><line x1="0" y1="140" x2="540" y2="140" stroke="#EFF3F7" stroke-width="1"/>
+        <polygon points="0,110 40,96 80,102 120,78 160,84 200,62 240,68 280,44 320,52 360,34 400,40 440,24 480,30 520,16 520,140 0,140" fill="url(#g1)"/>
+        <polyline points="0,110 40,96 80,102 120,78 160,84 200,62 240,68 280,44 320,52 360,34 400,40 440,24 480,30 520,16" fill="none" stroke="#0E9F6E" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="520" cy="16" r="3.5" fill="#fff" stroke="#0E9F6E" stroke-width="2.4"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#AAB5C2;margin-top:4px;">
+        <span>10-13</span><span>10-16</span><span>10-19</span><span>10-22</span><span>10-26</span>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="flex:1;">
+    <div class="ph"><b>分类分布</b><div class="sp">已发布商品</div></div>
+    <div style="padding:14px 18px;flex:1;">
+      <div style="margin-bottom:13px;">
+        <div style="display:flex;font-size:11.5px;margin-bottom:5px;"><span>教材书籍</span><span style="margin-left:auto;color:#7A8798;">486 件</span></div>
+        <div style="height:7px;border-radius:4px;background:#EFF3F7;"><div style="width:88%;height:7px;border-radius:4px;background:#0E9F6E;"></div></div>
+      </div><div style="margin-bottom:13px;">
+        <div style="display:flex;font-size:11.5px;margin-bottom:5px;"><span>数码电子</span><span style="margin-left:auto;color:#7A8798;">372 件</span></div>
+        <div style="height:7px;border-radius:4px;background:#EFF3F7;"><div style="width:68%;height:7px;border-radius:4px;background:#3E9E8A;"></div></div>
+      </div><div style="margin-bottom:13px;">
+        <div style="display:flex;font-size:11.5px;margin-bottom:5px;"><span>生活用品</span><span style="margin-left:auto;color:#7A8798;">284 件</span></div>
+        <div style="height:7px;border-radius:4px;background:#EFF3F7;"><div style="width:52%;height:7px;border-radius:4px;background:#66B79A;"></div></div>
+      </div><div style="margin-bottom:13px;">
+        <div style="display:flex;font-size:11.5px;margin-bottom:5px;"><span>运动户外</span><span style="margin-left:auto;color:#7A8798;">198 件</span></div>
+        <div style="height:7px;border-radius:4px;background:#EFF3F7;"><div style="width:36%;height:7px;border-radius:4px;background:#93C7A9;"></div></div>
+      </div><div style="margin-bottom:13px;">
+        <div style="display:flex;font-size:11.5px;margin-bottom:5px;"><span>其他</span><span style="margin-left:auto;color:#7A8798;">142 件</span></div>
+        <div style="height:7px;border-radius:4px;background:#EFF3F7;"><div style="width:26%;height:7px;border-radius:4px;background:#C3D8CB;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="panel" style="flex:1.05;min-height:0;">
+    <div class="ph"><b>分类明细（近 7 天）</b><div class="sp">成交率 = 已完成 / 已发布</div></div>
+    <div class="scroll" style="flex:1;">
+      <table>
+        <thead><tr><th>分类</th><th>发布</th><th>被预约</th><th>已完成</th><th>成交额</th><th>成交率</th></tr></thead>
+        <tbody><tr><td><b style="color:var(--ink);font-weight:600;">教材书籍</b></td><td>486</td><td>92</td><td>68</td><td style="color:#F4511E;font-weight:700;">¥4,286</td><td><span class="tag green">13.9%</span></td></tr><tr><td><b style="color:var(--ink);font-weight:600;">数码电子</b></td><td>372</td><td>61</td><td>47</td><td style="color:#F4511E;font-weight:700;">¥21,940</td><td><span class="tag green">12.6%</span></td></tr><tr><td><b style="color:var(--ink);font-weight:600;">生活用品</b></td><td>284</td><td>38</td><td>31</td><td style="color:#F4511E;font-weight:700;">¥2,316</td><td><span class="tag gray">10.9%</span></td></tr><tr><td><b style="color:var(--ink);font-weight:600;">运动户外</b></td><td>198</td><td>24</td><td>19</td><td style="color:#F4511E;font-weight:700;">¥5,120</td><td><span class="tag gray">9.6%</span></td></tr></tbody>
+      </table>
+    </div>
+</div>
+</div>
+  </div>
+</div></body></html>
