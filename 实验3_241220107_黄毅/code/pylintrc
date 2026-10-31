@@ -1,0 +1,22 @@
+[MASTER]
+ignore = __pycache__, .pytest_cache
+py-version = 3.10
+
+[MESSAGES CONTROL]
+disable =
+    duplicate-code,
+    too-few-public-methods,
+    too-many-lines,
+    fixme
+
+[FORMAT]
+max-line-length = 79
+indent-string = '    '
+
+[BASIC]
+good-names = i, j, k, ex, db, ok
+
+[DESIGN]
+max-args = 6
+max-attributes = 14
+max-locals = 20
