@@ -1,0 +1,70 @@
+\section{实现概述}
+
+\subsection{实现目标与技术选型}
+
+本次实验要把实验二的设计变成可编译、可运行、可测试的软件：8 个组件、10 个领域类、7 个商品状态、19 条需求（15 条功能、3 条非功能、1 条待确认）。语言选 \textbf{Python 3.13}，只使用标准库，运行时不需要安装任何第三方包；界面采用\textbf{命令行菜单}，没有做图形界面。
+
+选型理由有三条。第一，本系统的难点不在界面而在规则：同一商品至多一条有效预约、审核期间商品仍可被预约、已发布商品改内容要"前台显示旧信息、后台审新内容"。这些规则的组合爆炸靠人工枚举容易漏，用 Python 写测试验证最省力。第二，后续实验要对程序做静态分析与测试，Python 生态里的 \code{pylint}、\allowbreak \code{pytest} 可以直接对被测代码做度量，不需要额外搭桩。第三，只用标准库可以保证在机房机器和自备机器上结果一致，避免环境差异带来的"在我这里能跑"。
+
+不做图形界面是权衡后的决定：实验二已给出 10 张界面稿，但本次的重点是规则正确性，控制台界面用 \code{Shell} 的 30 个菜单项把全部用例走通，界面层与业务层完全分离，将来换成 Tkinter 或 Web 只需替换 \code{campustrade/cli} 目录，服务层一行不改。代价是演示时看不到视觉反馈，这一点在第 7 节作为不足记录。
+
+\subsection{总体结构}
+
+代码分五层，依赖方向单向向下，界面层不允许直接碰仓储（\tabref{tab:layer}）。
+
+\begin{table}[htbp]
+\centering
+\caption{代码分层与职责（行数含空行与注释）}\label{tab:layer}
+\zihao{-5}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{@{}L{2.05cm}L{4.5cm}YL{1.35cm}@{}}
+\toprule
+层 & 文件 & 职责 & 行数 \\
+\midrule
+领域模型 & \code{models.py}、\allowbreak \code{errors.py}、\allowbreak \code{state.py} & 实体、枚举、值对象、异常层次、状态迁移表 & 513 \\
+基础设施 & \code{storage.py}、\allowbreak \code{security.py} & 内存表 + JSON 快照、口令散列与会话令牌 & 305 \\
+服务层 & \code{services/}（9 个文件） & 认证、商品、审核、交易、举报、统计、日志与通知 & 1343 \\
+界面层 & \code{cli/shell.py}、\allowbreak \code{cli/tables.py} & 菜单、输入校验、中文宽度对齐的表格 & 602 \\
+装配与入口 & \code{context.py}、\allowbreak \code{seed.py}、\allowbreak \code{demo.py}、\allowbreak \code{run.py} & 依赖装配、演示数据、端到端脚本、参数解析 & 548 \\
+\midrule
+合计 & 22 个源文件 & —— & 3311 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+装配集中在 \code{context.py} 的 \code{build\_application()}：先建仓储与日志，再建认证，最后建六个业务服务。依赖顺序写在一处，服务之间就不会互相 \code{import} 造成循环，测试里也能一行拿到整套服务。
+
+\subsection{五个关键实现决定}
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=2pt,topsep=3pt]
+\item \textbf{状态只有一处可写}。商品状态不对外暴露 setter，所有迁移都走 \code{apply\_status()}，它先查迁移表再赋值并递增版本号。7 个状态之间的 9 条合法迁移与实验二状态图一一对应，非法迁移抛 \code{Conflict}，错误信息里带当前状态和版本。
+\item \textbf{权限判断跟着服务走，不跟着界面走}。每个面向界面的方法第一个参数都是会话令牌，方法内部换成 \code{User} 再判断角色与归属。界面层因此不可能"忘记"校验，测试也能直接拿不同角色的令牌调同一个方法。
+\item \textbf{持久化用整库快照 + 原子替换}。写临时文件后 \code{os.replace()}，即使进程中途被杀也不会留下半截 JSON。课程作业的数据量在千条级，这个方案比引入数据库省事，也便于人工查看数据。
+\item \textbf{并发只在必要处加锁}。仓储持有一把可重入锁，\code{TradeService.reserve()} 与 \code{cancel/confirm} 在临界区内完成"查重—校验—写入"，其余操作不加锁。锁的范围就是"同一商品至多一条有效预约"这条不变式需要保护的范围。
+\item \textbf{异常分层}。\code{DomainError} 之下分五类，各管一件事：入参不合法 \code{ValidationError}、未登录或过期 \code{AuthError}、越权 \code{PermissionDenied}、目标不存在 \code{NotFound}、与当前状态冲突 \code{Conflict}。界面层只在一个地方捕获并打印，服务层不返回错误码、不打印日志。
+\end{enumerate}
+
+\subsection{与实验二组件的对应}
+
+实验二把系统划成 8 个模块（M1--M8），实现时按依赖方向落成 7 个服务加 1 个横切模块（\tabref{tab:module}）。分量基本对齐，只有两处合并：M4 查询并入商品服务（查询的条件就是商品属性，拆开会出现两个服务同时读 \code{Item}）、M8 公共支撑拆成 \code{storage} 与 \code{journal} 两部分（一个管持久化、一个管日志与通知）。
+
+\begin{table}[htbp]
+\centering
+\caption{实验二组件到实验三模块的映射}\label{tab:module}
+\zihao{-5}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}L{1.5cm}L{3.4cm}L{3.6cm}Y@{}}
+\toprule
+组件 & 实验二职责 & 实现位置 & 说明 \\
+\midrule
+M1 & 用户与权限 & \code{services/auth.py} & 注册、登录、会话过期、角色分配 \\
+M2 & 商品管理 & \code{services/item.py} & 草稿、修改、送审、下架、分类维护 \\
+M3 & 审核 & \code{services/audit.py} & 通过/驳回、审核记录、待审内容原子替换 \\
+M4 & 查询 & 并入 M2 & 按关键词、分类、价格、排序过滤 \\
+M5 & 交易 & \code{services/trade.py} & 预约、取消、确认、完成、超时自动完成 \\
+M6 & 举报治理 & \code{services/moderation.py} & 举报去重、下架/驳回处置 \\
+M7 & 日志与统计 & \code{services/journal.py}、\allowbreak \code{stats.py} & 日志只追加、两套统计口径 \\
+M8 & 公共支撑 & \code{storage.py}、\allowbreak \code{journal.py} & 快照持久化、通知 \\
+\bottomrule
+\end{tabularx}
+\end{table}

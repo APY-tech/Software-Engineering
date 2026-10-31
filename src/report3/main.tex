@@ -1,0 +1,154 @@
+\documentclass[UTF8,a4paper,11pt]{ctexart}
+
+% ============ 宏包 ============
+\usepackage{geometry}
+\geometry{left=2.7cm,right=2.7cm,top=2.6cm,bottom=2.4cm,headsep=0.8cm,footskip=0.9cm}
+\usepackage{graphicx}
+\graphicspath{{img/}}
+\usepackage{booktabs,tabularx,array,longtable,multirow}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={实验三 软件实现与构建：校园二手交易系统},pdfauthor={黄毅 241220107},pdfsubject={软件工程实验三},pdfkeywords={Python, 软件实现, pylint, pytest, Git, 校园二手交易}}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{rotating}
+\usepackage{fontspec}
+\setmonofont{Consolas}
+\setCJKmonofont{SimSun}
+\setcounter{tocdepth}{2}
+
+% ============ 代码与终端输出样式 ============
+\definecolor{listbg}{HTML}{F7F8FA}
+\definecolor{listframe}{HTML}{C9D2DB}
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  columns=fixed,
+  basewidth=0.5em,
+  keepspaces=true,
+  breaklines=true,
+  breakatwhitespace=false,
+  frame=single,
+  rulecolor=\color{listframe},
+  backgroundcolor=\color{listbg},
+  showstringspaces=false,
+  tabsize=4,
+  xleftmargin=0.6em,
+  xrightmargin=0.6em,
+  aboveskip=0.6em,
+  belowskip=0.4em,
+}
+
+% ============ 样式 ============
+\linespread{1.28}
+\emergencystretch=4em
+\setlength{\parskip}{0.25em}
+\setlength{\topsep}{3pt}
+\setlength{\partopsep}{1pt}
+\counterwithin*{figure}{section}
+\counterwithin*{table}{section}
+\renewcommand{\thefigure}{\thesection-\arabic{figure}}
+\renewcommand{\thetable}{\thesection-\arabic{table}}
+
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.75}
+\captionsetup{font={small,stretch=1.1},labelsep=quad,justification=centering}
+\captionsetup[table]{skip=4pt}
+
+\ctexset{
+  section={format=\zihao{3}\heiti\bfseries, beforeskip=14pt, afterskip=10pt, name={,},number=\arabic{section}},
+  subsection={format=\zihao{4}\heiti\bfseries, beforeskip=10pt, afterskip=7pt},
+  subsubsection={format=\zihao{-4}\heiti\bfseries, beforeskip=8pt, afterskip=5pt},
+}
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\zihao{-5}\songti 软件工程 · 实验三：软件实现与构建}
+\fancyhead[R]{\zihao{-5}\songti 校园二手交易系统}
+\fancyfoot[C]{\zihao{-5}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\tabfont}{\zihao{5}}
+\newcommand{\figref}[1]{图~\ref{#1}}
+\newcommand{\tabref}[1]{表~\ref{#1}}
+% \hspace{0pt} 在行内代码前后各加一个零宽断点，避免长标识符把行撑出边界
+\newcommand{\code}[1]{\hspace{0pt}\texttt{#1}\hspace{0pt}}
+
+\begin{document}
+\zihao{-4}
+
+% ================= 封面 =================
+\definecolor{accent}{HTML}{0E9F6E}
+\definecolor{inkc}{HTML}{16202B}
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\vspace*{1.6cm}
+
+{\zihao{-3}\heiti 软\quad 件\quad 工\quad 程}\\[6pt]
+{\color{accent}\rule{3.6cm}{0.9pt}}
+
+\vspace{1.5cm}
+{\zihao{-1}\heiti\bfseries 实验三：软件实现与构建}
+
+\vspace{0.9cm}
+{\zihao{4}\kaishu 校园二手交易系统的编码实现、静态检查与仓库托管}
+
+\vspace{2.2cm}
+
+\renewcommand{\arraystretch}{1.75}
+{\zihao{4}\songti
+\begin{tabular}{r@{\hspace{0.7em}}l}
+\toprule
+课程名称 & 软件工程 \\
+项目名称 & 校园二手交易系统（CampusTrade）\\
+学\qquad 号 & 241220107 \\
+姓\qquad 名 & 黄\quad 毅 \\
+学\qquad 院 & 计算机科学与技术学院 \\
+专\qquad 业 & 计算机科学与技术 \\
+任课教师 & 王\quad 豫 \\
+完成日期 & 2026 年 11 月 \\
+\bottomrule
+\end{tabular}
+}
+
+\vfill
+{\zihao{5}\songti\color{gray}
+依据实验一 19 条需求与实验二 6 张 UML 图实现\\
+Python 3 共 22 个源文件、3311 行（有效代码 2761 行），73 个单元测试\\
+全部改动见 git 提交记录，远程仓库 APY-tech/Software-Engineering}
+\end{center}
+\end{titlepage}
+
+% ================= 目录 =================
+\pagenumbering{roman}
+\setcounter{page}{1}
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{sec1}
+\input{sec2}
+\input{sec3}
+\input{sec4}
+\input{sec5}
+\input{sec6}
+\input{sec7}
+
+\end{document}
