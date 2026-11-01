@@ -1,8 +1,8 @@
 \section{代码风格与静态检查}
 
-用 \code{pylint} 4.1.3 做静态检查，标准取 PEP 8（行宽 79、4 空格缩进），配置文件 \code{pylintrc} 放在代码根目录。只关掉三类与作业场景无关的检查：\code{duplicate-code}（模板化的 dataclass 声明必然相似）、\code{too-few-public-methods}（实体本来就只有数据）、\code{too-many-lines}。参数上限放宽到 6 个、属性上限 14 个，因为 \code{Item} 有 13 个字段，这是领域模型本身的样子，拆开反而难读。
+用 \code{pylint} 4.1.3 按 PEP 8（行宽 79）检查。只关掉三类与作业无关的检查：\code{duplicate-code}（dataclass 声明必然相似）、\code{too-few-public-methods}（实体只有数据）、\code{too-many-lines}；参数上限放宽到 6、属性上限 14（\code{Item} 有 13 个字段）。
 
-第一版可运行代码（不含测试）跑出 \textbf{9.85/10}，共 27 条告警，分布见\tabref{tab:pylintinit}。没有一条是逻辑错误类（\code{E} 级）告警，全是格式与写法问题——"能跑"和"好读"确实是两件事。
+初稿跑出 \textbf{9.85/10}，27 条告警全是格式与写法问题，无逻辑错误（\tabref{tab:pylintinit}）。
 
 \begin{table}[htbp]
 \centering
@@ -13,30 +13,28 @@
 \toprule
 告警 & 条数 & 典型位置 & 处理方式 \\
 \midrule
-\code{line-too-long} C0301 & 22 & 6 个文件，最长 83 字符 & 按语义折行，不缩排 \\
-\code{trailing-newlines} C0305 & 2 & \code{item.py}、\code{moderation.py} & 删除文件末尾多余空行 \\
-\code{unidiomatic-typecheck} C0123 & 1 & \code{storage.py:60} & \code{type(None)} 改为 \code{types.NoneType} \\
-\code{too-many-return-statements} R0911 & 1 & \code{storage.py:54} & 重写为单一出口 \\
-\code{unused-import} W0611 & 1 & \code{auth.py:12} & 删除未使用的 \code{NotFound} \\
+\code{line-too-long} C0301 & 22 & 6 个文件，最长 83 字符 & 按语义折行 \\
+\code{trailing-newlines} C0305 & 2 & \code{item.py}、\code{moderation.py} & 删末尾空行 \\
+\code{unidiomatic-typecheck} C0123 & 1 & \code{storage.py} & \code{type(None)} 改 \code{types.NoneType} \\
+\code{too-many-return-statements} R0911 & 1 & \code{storage.py} & 重写为单一出口 \\
+\code{unused-import} W0611 & 1 & \code{auth.py} & 删除未用导入 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-行宽占 22 条，其中 15 条只超 1--4 个字符，删几个空格也能过，但那样只是把问题藏起来。按语义折行才是对的：函数调用的参数对齐到左括号后，\code{if} 的条件用括号包起来再按布尔项分行。
+行宽占 22 条，按语义折行而非删空格：
 
 \begin{lstlisting}
 # 修复前（83 字符）
 self._journal.record(actor.user_id, action, item.item_id, True, item.title)
 
-# 修复后：按"调用参数对齐"折行
+# 修复后：参数对齐到左括号后
 self._journal.record(
     actor.user_id, action, item.item_id, True, item.title)
 \end{lstlisting}
 
-把测试代码一起纳入检查后重新跑，得分 \textbf{10.00/10}：
+纳入测试代码后复查 \textbf{10.00/10}：
 
 \lstinputlisting{listings/pylint_after.tex}
 
-测试目录有三处文件级 \code{disable}，都写了理由：pytest 夹具互相引用是官方写法（\code{redefined-outer-name}）、用例名本身就是文档（\code{missing-function-docstring}）、有的夹具只负责铺数据（\code{unused-argument}）。除此之外没有其它豁免，源码目录一条 \code{disable} 都没有。
-
-这次也吃了晚检查的亏：第一次跑 pylint 是写完 3000 行之后，27 条里 22 条是行宽，属于写的时候就该注意的问题，攒到最后改就是一次几百行的机械劳动。
+测试目录有三处文件级 \code{disable}（夹具互相引用、用例名即文档、铺数据夹具），均写明理由；源码目录一条 \code{disable} 都没有。

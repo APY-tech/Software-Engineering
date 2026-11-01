@@ -8,13 +8,11 @@ origin  https://github.com/APY-tech/Software-Engineering.git (fetch)
 origin  https://github.com/APY-tech/Software-Engineering.git (push)
 \end{lstlisting}
 
-主分支 \code{main}，三次实验的产物都在同一仓库里，靠目录与提交说明区分，没有另开分支——交付物是持续演进的同一个项目，分支反而增加合并成本。实验一的两次关键状态另打了标签 \code{lab1-ai-draft} 与 \code{lab1-final}，便于对照初稿与定稿。
-
-本轮工作按"一类产物一次提交"拆开（\tabref{tab:commits}）：代码与它的检查记录分开，报告单独提交，避免 3000 行代码和一份 PDF 混在一个提交里导致 diff 无法阅读。
+主分支 \code{main}，三次实验的产物在同一仓库里，靠目录与提交说明区分。本轮按"一类产物一次提交"拆开（\tabref{tab:commits}）。
 
 \begin{table}[htbp]
 \centering
-\caption{本次实验的提交记录}\label{tab:commits}
+\caption{本次实验的主要提交}\label{tab:commits}
 \zihao{-5}
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\textwidth}{@{}L{1.8cm}L{1.5cm}Y@{}}
@@ -22,15 +20,15 @@ origin  https://github.com/APY-tech/Software-Engineering.git (push)
 提交 & 文件数 & 内容 \\
 \midrule
 \code{a66e16a} & 34 & 22 个源文件、8 个测试文件、配置与说明 \\
-\code{31056f2} & 8 & pylint 前后对比、测试与演示输出、代码规模、提示词记录 \\
+\code{31056f2} & 8 & pylint 前后对比、测试与演示输出、提示词记录 \\
 \code{ad62b25} & 12 & 类图、服务类图、两张时序图的 puml 与 png \\
 \code{e2e555f} & 20 & 报告 LaTeX 源、插图与编译产物 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-仓库最新的提交历史：
+仓库提交历史：
 
 \lstinputlisting{listings/git.tex}
 
-\code{.gitignore} 排除了三类东西：Python 的 \code{\_\_pycache\_\_/} 与 \code{.pytest\_cache/}；程序运行产生的 \code{code/data/campustrade.json}（可用 \code{--seed} 重建，不占仓库体积）；LaTeX 中间产物（\code{.aux}、\code{.log}、\code{.toc}）。源码、UML 的 puml 与图、测试、检查记录、报告源与 PDF 都入库。
+\code{.gitignore} 排除 Python 缓存（\code{\_\_pycache\_\_/}、\code{.pytest\_cache/}）、运行时数据（\code{code/data/}，可用 \code{--seed} 重建）与 LaTeX 中间产物；源码、UML、测试、检查记录、报告均入库。

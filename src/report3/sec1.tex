@@ -1,38 +1,35 @@
 \section{实现概述}
 
-本次实验把实验二的设计落成可运行的程序：10 个领域类、7 个商品状态、19 条需求。语言用 Python 3.13，只用标准库，界面是命令行菜单。
+实验二给出了 10 个领域类、7 个商品状态、19 条需求的设计，本实验将其实现为可运行的程序。语言用 Python 3.13，只用标准库，界面为命令行菜单。选 Python 是因为系统难点在规则组合而非界面，写成测试逐条验证最省力；只用标准库可保证机房与自备机器结果一致。不做图形界面是权衡后的决定，界面层与业务层已完全分离，以后换 Tkinter 或 Web 只需替换 \code{cli} 目录。
 
-选 Python 是因为这套系统的难点在规则而不在界面：同一商品至多一条有效预约、审核期间商品仍可被预约、已发布商品改内容要"前台显示旧信息、后台审新内容"。这些规则的组合靠人工枚举容易漏，写成测试逐条撞最省力，\code{pylint}、\code{pytest} 也能直接用于后续实验的静态分析与测试。只用标准库则保证机房和自备机器上结果一致，不用处理依赖差异。
-
-不做图形界面是权衡后的决定。实验二已给出 10 张界面稿，但本次重点是规则正确性，控制台菜单已能把全部用例走通。界面层与业务层完全分离，以后换 Tkinter 或 Web 只需替换 \code{campustrade/cli} 目录，服务层不用改。
-
-代码分五层，依赖单向向下，界面层不直接碰仓储（\tabref{tab:layer}）。装配集中在 \code{context.py} 的 \code{build\_application()}：先建仓储与日志，再建认证，最后建六个业务服务。依赖顺序写在一处，服务之间不互相 \code{import}，测试里一行就能拿到整套服务。
+代码分五层，依赖单向向下（\tabref{tab:layer}）。装配集中在 \code{context.py} 的 \code{build\_application()}，依赖顺序写在一处。
 
 \begin{table}[htbp]
 \centering
-\caption{代码分层与职责（行数含空行与注释）}\label{tab:layer}
+\caption{代码分层与职责}\label{tab:layer}
 \zihao{-5}
 \renewcommand{\arraystretch}{1.18}
 \begin{tabularx}{\textwidth}{@{}L{2.05cm}L{4.5cm}YL{1.35cm}@{}}
 \toprule
 层 & 文件 & 职责 & 行数 \\
 \midrule
-领域模型 & \code{models.py}、\allowbreak \code{errors.py}、\allowbreak \code{state.py} & 实体、枚举、异常层次、状态迁移表 & 513 \\
-基础设施 & \code{storage.py}、\allowbreak \code{security.py} & 内存表 + JSON 快照、口令散列与会话令牌 & 305 \\
+领域模型 & \code{models.py}、\code{errors.py}、\code{state.py} & 实体、枚举、异常层次、状态迁移表 & 513 \\
+基础设施 & \code{storage.py}、\code{security.py} & 内存表 + JSON 快照、口令散列与会话令牌 & 305 \\
 服务层 & \code{services/}（9 个文件） & 认证、商品、审核、交易、举报、统计、日志与通知 & 1343 \\
-界面层 & \code{cli/shell.py}、\allowbreak \code{cli/tables.py} & 菜单、输入校验、表格排版 & 602 \\
-装配与入口 & \code{context.py}、\allowbreak \code{seed.py}、\allowbreak \code{demo.py}、\allowbreak \code{run.py} & 依赖装配、演示数据、端到端脚本、参数解析 & 548 \\
+界面层 & \code{cli/shell.py}、\code{cli/tables.py} & 菜单、输入校验、表格排版 & 602 \\
+装配与入口 & \code{context.py}、\code{seed.py}、\code{demo.py}、\code{run.py} & 依赖装配、演示数据、端到端脚本、参数解析 & 548 \\
 \midrule
 合计 & 22 个源文件 & —— & 3311 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-实现时有四条约定贯穿始终：
+贯穿实现的几条约定：
 
-\begin{enumerate}[leftmargin=1.6em,itemsep=2pt,topsep=3pt]
-\item \textbf{状态只有一处可写}。商品状态不对外暴露 setter，所有迁移都走 \code{apply\_status()}，先查迁移表再赋值并递增版本号，非法迁移抛 \code{Conflict}。
-\item \textbf{权限判断跟着服务走}。每个面向界面的方法第一个参数都是会话令牌，方法内部换成 \code{User} 再判断角色与归属，界面层不可能"忘记"校验。
-\item \textbf{持久化用整库快照加原子替换}。写临时文件后 \code{os.replace()}，进程中途被杀也不会留下半截 JSON。作业的数据量在千条级，这个方案比引入数据库省事，也便于人工查看。
-\item \textbf{并发只在必要处加锁}。仓储持有一把可重入锁，\code{reserve()} 与 \code{cancel/confirm} 在临界区内完成"查重—校验—写入"，其余操作不加锁。锁的范围就是"同一商品至多一条有效预约"需要保护的范围。
-\end{enumerate}
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=3pt]
+\item 状态只有一处可写：迁移走 \code{apply\_status()}，先查表再赋值并递增版本号，非法迁移抛 \code{Conflict}。
+\item 权限判断跟着服务走：方法首参为会话令牌，内部换成 \code{User} 再判角色与归属。
+\item 持久化用整库快照加原子替换：写临时文件后 \code{os.replace()}。
+\item 并发只在必要处加锁：\code{reserve()} 与 \code{cancel/confirm} 在临界区内完成查重—校验—写入。
+\item 异常分五类 \code{ValidationError}/\code{AuthError}/\code{PermissionDenied}/\code{NotFound}/\code{Conflict}，界面层只在一处捕获。
+\end{itemize}

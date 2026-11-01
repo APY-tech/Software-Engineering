@@ -2,16 +2,16 @@
 
 \subsection{使用方式}
 
-没有让模型一次把系统写出来。需求 19 条、状态 7 个，一次生成几百行代码，既没法逐行核对，也说不清哪条规则由哪段代码保证，出错只能整段重写。实际做法是按模块切分、先规约后实现、每轮跑检查，共十轮：
+没有让模型一次把系统写出来，而是按模块切分、先规约后实现、每轮跑检查，共十轮：
 
-\begin{enumerate}[leftmargin=1.6em,itemsep=2pt,topsep=3pt]
-\item \textbf{一轮只喂一个模块}。输入是相关的 2--3 条需求原文、类图里对应那一段 \mbox{PlantUML}、以及已定下来的接口签名。模块小到能在一屏里核对，错了也只错这一块。
-\item \textbf{先要存根与规约，再要实现}。先让它写方法签名、参数含义、前置后置条件、会抛哪些异常，确认规约对了再填函数体。规约写错的概率远低于实现写错，需求理解偏差在这一步就能暴露。
-\item \textbf{每轮结束立刻跑三项检查}。\code{compileall} 查语法、\code{pylint} 查风格、\code{pytest} 查行为，把报错原文贴回下一轮让它按报错改，而不是由我转述错误。
-\item \textbf{产出逐行过一遍}。每一行都读过再入库，改动与理由写进提交说明。
-\end{enumerate}
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=3pt]
+\item 一轮只喂一个模块：相关需求原文 + 类图片段 + 已定的接口签名。
+\item 先要存根与规约（方法签名、前置后置条件、会抛哪些异常），确认后再填实现。
+\item 每轮结束跑 \code{compileall}/\code{pylint}/\code{pytest}，把报错原文贴回下一轮。
+\item 产出逐行过一遍再入库。
+\end{itemize}
 
-十轮的输入、产出与处理见\tabref{tab:rounds}，完整提示词与被退回的版本在仓库 \code{code/docs/prompts.md}。
+十轮交互见\tabref{tab:rounds}，完整提示词在仓库 \code{code/docs/prompts.md}。
 
 \begin{table}[htbp]
 \centering
@@ -22,31 +22,35 @@
 \toprule
 轮次 & 输入 & 模型产出 & 我的处理 \\
 \midrule
-R1 & 19 条需求 + 类图，只做数据模型 & 10 个 dataclass、5 个枚举、异常层次 & 采纳；补 \code{publishedAt}、\allowbreak \code{disputed} 两个字段 \\
-R2 & 仓储要能落盘、支持泛型表 & \code{Table}、\allowbreak \code{Store}、\allowbreak 编解码 & 换掉 \code{asdict}（Decimal/datetime 会丢类型），改原子写 \\
-R3 & 状态图 puml & 迁移表 + \code{apply\_status} & 采纳；补中文状态名映射 \\
-R4 & REQ-002/005/009/014/017 & 商品服务 & \textbf{退回}：初稿直接改已发布商品的字段，改为写待审记录 \\
+R1 & 19 条需求 + 类图，只做数据模型 & 10 个 dataclass、5 个枚举、异常层次 & 采纳；补两个字段 \\
+R2 & 仓储要能落盘、支持泛型表 & \code{Table}、\code{Store}、编解码 & 换掉 \code{asdict}，改原子写 \\
+R3 & 状态图 puml & 迁移表 + \code{apply\_status} & 采纳；补中文状态名 \\
+R4 & REQ-002/005/009/014/017 & 商品服务 & \textbf{退回}：改为写待审记录 \\
 R5 & REQ-003/019 & 审核服务与审核记录 & 采纳；补版本号比对 \\
-R6 & REQ-001/006/007/008/015 & 交易服务 & \textbf{退回}：初稿无锁，改为锁内查重建单 \\
-R7 & REQ-010/013/018 & 举报、日志、统计 & 采纳；处置改为复用商品下架 \\
-R8 & 全部服务 & 演示脚本、命令行菜单、表格排版 & 采纳结构；修 3 处残留与漏传令牌 \\
-R9 & pylint 初稿 27 条告警 & 逐条修复方案 & 采纳 25 条，2 条按项目约定处理 \\
-R10 & pytest 失败输出 & 定位到"完成只通知卖家" & 采纳，改代码不改测试 \\
+R6 & REQ-001/006/007/008/015 & 交易服务 & \textbf{退回}：改为锁内查重建单 \\
+R7 & REQ-010/013/018 & 举报、日志、统计 & 采纳；处置复用商品下架 \\
+R8 & 全部服务 & 演示脚本、命令行菜单、表格 & 采纳结构；修 3 处残留 \\
+R9 & pylint 27 条告警 & 逐条修复方案 & 采纳 25 条 \\
+R10 & pytest 失败输出 & 定位"完成只通知卖家" & 采纳，改代码不改测试 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{模型承担了哪些工作}
+\subsection{模型承担的工作}
 
-省时间的主要是三类活。一是\textbf{模板化代码}：dataclass 字段声明、异常类层次、\code{argparse} 参数定义，没有设计含量但手打容易漏。二是\textbf{把图翻成表}：状态图的 9 条箭头、时序图的 \code{alt} 分支，让它逐条列出"箭头 $\to$ 触发方法 $\to$ 抛什么异常"，我再核对有无遗漏——这一项我最容易看走眼。三是\textbf{按告警给修复方案}：27 条 pylint 告警贴回去，折行、改 \code{types.NoneType}、多出口改单一出口，比自己一条条查文档快。
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=3pt]
+\item 模板化代码：dataclass 字段声明、异常类层次、\code{argparse} 参数定义。
+\item 把图翻成表：状态图的 9 条箭头、时序图的 \code{alt} 分支，逐条列出"箭头 $\to$ 触发方法 $\to$ 抛什么异常"。
+\item 按告警给修复方案：pylint 27 条告警贴回去，给出折行、改类型、多出口改单一出口等方案。
+\end{itemize}
 
-设计判断类的活它给不出可靠答案：锁加在哪里、要不要把方法从实体上移走、驳回后商品回不回草稿，都得自己定。它的默认倾向是"能跑就行"，比如初稿愿意让已发布商品的修改直接覆盖字段，功能上似乎也对，但违反了 REQ-017 的展示语义。
+设计判断类的活它给不出可靠答案：锁加在哪里、要不要把方法从实体上移走、驳回后商品回不回草稿，都得自己定。
 
-\subsection{生成内容不符合预期时怎么处理}
+\subsection{生成不符合预期时的处理}
 
-办法是造反例：每条它声称的规则，都在演示脚本或测试里造一个应该被拒绝的场景去撞，撞不穿才算数。下面四个缺陷都是撞出来的，也都不在它主动说明的风险里。
+办法是造反例：每条它声称的规则，都在测试里造一个应该被拒绝的场景去撞，撞不穿才算数。下面四个缺陷都是撞出来的。
 
-\textbf{案例 1：审核服务漏掉"审核期间被预约"的状态。}演示脚本跑到第 7 节抛 \code{Conflict: 商品当前为已预约，不在待审核状态}。初稿只认两种状态：
+\textbf{案例 1：审核漏掉"审核期间被预约"的状态。}演示跑到第 7 节抛 \code{Conflict}，初稿只认待审核与已发布两种状态。REQ-017 写明审核期间买家仍可预约，商品会变成已预约。把可挂待审内容的状态抽成常量 \code{\_REVISION\_HOLDERS}，并补用例钉住。
 
 \begin{lstlisting}
 # 初稿：只认待审核与已发布
@@ -57,19 +61,17 @@ elif item.status is ItemStatus.PUBLISHED and revision is not None:
 else:
     raise Conflict("不在待审核状态")
 
-# 修改后：把"可挂待审内容的状态"抽成常量，三处共用
+# 修改后：可挂待审内容的状态抽成常量
 _REVISION_HOLDERS = (ItemStatus.PUBLISHED, ItemStatus.RESERVED,
                      ItemStatus.CONFIRMED)
 elif revision is not None and item.status in _REVISION_HOLDERS:
     self._apply_revision(item, revision, now)
 \end{lstlisting}
 
-REQ-017 写明"修改审核期间买家仍可预约"，商品会变成已预约，此时待审内容仍应能通过。这不是笔误，是模型没有把两条需求交叉起来想。补了 \code{test\_revision\_can\_be\_approved\_after\_reservation} 用例把它钉住。
+\textbf{案例 2：交易完成只通知卖家。}REQ-015 要求"自动完成并通知买家"，初稿只通知卖家。改 \code{\_finish} 同时通知买卖双方，测试一行没动。
 
-\textbf{案例 2：交易完成只通知卖家。}\code{test\_auto\_finish\_after\_seven\_days} 失败，买家收件箱里没有完成通知。REQ-015 原文是"自动将交易标记为已完成\textbf{并通知买家}"，模型把"完成"当成只与卖家有关的事。判断是测试对、代码错，改 \code{\_finish} 同时通知买卖双方，测试一行没动。
+\textbf{案例 3：必填校验放在建草稿时。}初稿在 \code{create\_draft} 就强制描述非空，写一半的草稿存不下来。改成两档：建草稿只查标题/价格/分类，提交审核时再查描述。
 
-\textbf{案例 3：必填校验放在建草稿时。}初稿在 \code{create\_draft} 就强制描述非空，写了一半的草稿存不下来，与"草稿保存成功"冲突。改成两档校验：建草稿只查标题、价格、分类，提交审核时再查描述。
+\textbf{案例 4：用 \code{disable} 消告警。}编解码函数被判 \code{too-many-return-statements}，模型建议加 \code{disable}。未接受，改成单一出口写法，告警因代码变简单而消失。
 
-\textbf{案例 4：用 \code{disable} 消告警。}\code{storage.py} 的编解码函数被判 \code{too-many-return-statements}，模型建议加 \code{\# pylint: disable}。没有接受，改成"先解 Optional、再按分支给 \code{result} 赋值"的单一出口写法。告警消失是因为代码真的变简单了，而不是检查被关掉。
-
-除此之外还退回了两种产出：把业务规则塞回实体方法的版本（规则散落、事务边界不清，见 2.2 节），以及"先查再写"不加锁的并发实现——两个线程可能都通过检查再各自写入，同一商品就会出现两条有效预约。
+此外还退回了两种产出：把业务规则塞回实体方法的版本，以及"先查再写"不加锁的并发实现（两个线程可能都通过检查再各自写入，同一商品出现两条有效预约）。

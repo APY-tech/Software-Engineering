@@ -1,8 +1,6 @@
 \section{从 UML 图到代码}
 
-\subsection{转换规则}
-
-先定规则再写类，每种 UML 元素只对应一种写法，后面 10 个类就是重复劳动（\tabref{tab:mapping}）。
+每种 UML 元素只对应一种写法，规则先定下，后面逐类翻译即可（\tabref{tab:mapping}）。
 
 \begin{table}[htbp]
 \centering
@@ -13,28 +11,28 @@
 \toprule
 UML 元素 & 代码构造 & 处理要点 \\
 \midrule
-类（实体） & \code{@dataclass} & 字段名、类型照抄；主键统一暴露 \code{ident} 属性，仓储据此泛型存取 \\
-枚举 & \code{class X(str, Enum)} & 继承 \code{str} 便于 JSON 落盘与命令行按名字解析 \\
-关联（1—N） & 外键字段 + 仓储查询 & 不在实体里挂对象引用，避免循环引用与反序列化困难 \\
-组合（Item—ItemRevision） & 独立表 + 按 \code{itemId} 查 & 待审内容能被单独丢弃，符合"驳回即丢"的语义 \\
-操作（方法） & 服务层方法 & 原因见 2.2 节 \\
-状态图 & 迁移表 + \code{apply\_status} & 每条箭头一个表项，非法迁移抛异常 \\
-时序图 & 一个方法体 + 锁 & 消息顺序即语句顺序，\code{alt} 分支即 \code{if/else} \\
+类（实体） & \code{@dataclass} & 字段照抄；主键统一暴露 \code{ident} \\
+枚举 & \code{class X(str, Enum)} & 便于 JSON 落盘与按名字解析 \\
+关联（1—N） & 外键字段 + 仓储查询 & 不挂对象引用，避免循环引用 \\
+组合（Item—ItemRevision） & 独立表 + 按 \code{itemId} 查 & 待审内容能被单独丢弃 \\
+操作（方法） & 服务层方法 & 跨聚合读写放服务层 \\
+状态图 & 迁移表 + \code{apply\_status} & 每条箭头一个表项 \\
+时序图 & 一个方法体 + 锁 & \code{alt} 分支即 \code{if/else} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{类图的落地与三处修订}
+\subsection{类图}
 
-领域模型（\figref{fig:class}）照实验二类图逐类翻译：10 个实体加 5 个枚举，全部落在 \code{models.py}（327 行）。实体只保留"看自己"的判断，例如 \code{Item.is\_public()} 判断能否出现在公开查询里、\code{has\_published\_version} 判断驳回后是回草稿还是继续展示旧信息。图中 \code{ItemRevision} 是组合状态的载体：已发布商品被修改时 \code{Item.status} 仍是已发布，新内容暂存于待审记录，审核通过后原子替换，驳回则丢弃。\code{Reservation.requestId} 是幂等键，与商品编号一起保证同一商品至多一条有效预约。
+领域模型（\figref{fig:class}）照实验二类图逐类翻译，10 个实体加 5 个枚举落在 \code{models.py}。实体只保留自身判断，跨实体协作放服务层。\code{ItemRevision} 是组合状态载体：已发布商品被修改时 \code{Item.status} 仍为已发布，新内容暂存于待审记录，审核通过后原子替换。\code{Reservation.requestId} 是幂等键。
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\textwidth]{class.pdf}
-\caption{领域模型类图（矢量图，可放大查看）}\label{fig:class}
+\caption{领域模型类图}\label{fig:class}
 \end{figure}
 
-服务层与仓储（\figref{fig:service}）是实验二类图里没有的，属于实现期新增的结构：\code{ServiceBase} 统一持有仓储、认证、日志三个依赖，六个业务服务继承它；\code{Store} 是仓储门面，\code{Table} 是泛型内存表，二者是组合关系。
+服务层与仓储（\figref{fig:service}）是实现期新增：\code{ServiceBase} 收敛令牌换用户与落盘，六个业务服务继承它；\code{Store} 是仓储门面，\code{Table} 是泛型内存表。
 
 \begin{figure}[!htbp]
 \centering
@@ -42,57 +40,51 @@ UML 元素 & 代码构造 & 处理要点 \\
 \caption{服务层与仓储类图}\label{fig:service}
 \end{figure}
 
-实现过程中对原设计改了三处：
+实现时对原设计改了三处：一是实体上的业务方法上移到服务层（方法需跨聚合读写，实体会被迫持有仓储引用，事务边界不清）；二是 \code{ItemRevision} 增加 \code{categoryId}（改分类也属修改商品信息，不带分类会导致审核后内容与分类不一致）；三是新增 \code{ServiceBase}、\code{Store}、\code{Table} 三个工程类，收敛重复代码。
 
-\textbf{一是实体上的业务方法上移到服务层。}实验二给 \code{Item} 挂了 \code{submitAudit()}、\allowbreak \code{offShelf()}，给 \code{Reservation} 挂了 \code{cancel()}、\allowbreak \code{confirm()}。真正写的时候发现这些方法都要读别的聚合——送审要看分类是否有效，取消预约要同时改商品状态——实体会被迫持有仓储引用，事务边界也就散了。改成"实体只描述数据与自身判断、服务负责跨实体协作"后，\code{Item.submitAudit()} 变成 \code{ItemService.submit\_audit()}，状态迁移仍由 \code{state} 模块统一校验，规则没丢，只是换了执行者。
+\subsection{状态图}
 
-\textbf{二是 \code{ItemRevision} 增加 \code{categoryId}。}原设计只暂存标题、价格、图片，但 REQ-005 允许按分类筛选，改分类同样属于"修改商品信息"，不带上分类会导致审核通过后内容与分类不一致。
-
-\textbf{三是新增 \code{ServiceBase}、\allowbreak \code{Store}、\allowbreak \code{Table} 三个实现类。}它们不是领域概念，是工程结构，分别收敛"令牌换用户与落盘""泛型持久化与查询"这几处重复代码。
-
-\subsection{状态图的落地}
-
-状态图（\figref{fig:state}）的 7 个状态、9 条合法迁移写成 \code{state.py} 里的一个字典，键是当前状态、值是允许的后继集合。\code{apply\_status()} 先校验再赋值，并递增 \code{version}，这个版本号就是审核时"重新读取状态"的实现基础（REQ-003）。非法迁移一律走 \code{Conflict}，例如对已预约商品确认完成、对已完成商品再次下架。
+7 个状态、9 条合法迁移写成 \code{state.py} 里的一个字典，\code{apply\_status()} 先校验再赋值并递增 \code{version}（\figref{fig:state}、\tabref{tab:transition}）。非法迁移一律抛 \code{Conflict}。
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.29\textwidth]{state.pdf}
-\caption{商品状态图（沿用实验二）}\label{fig:state}
+\caption{商品状态图}\label{fig:state}
 \end{figure}
 
 \begin{table}[htbp]
 \centering
-\caption{状态迁移与触发动作的对应}\label{tab:transition}
+\caption{状态迁移与触发动作}\label{tab:transition}
 \zihao{-5}
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\textwidth}{@{}L{3.3cm}L{4.3cm}Y@{}}
 \toprule
 迁移 & 触发方法 & 附加校验 \\
 \midrule
-草稿 $\to$ 待审核 & \code{ItemService.submit\_audit} & 标题、描述、价格必填；仅本人商品 \\
-待审核 $\to$ 已发布 & \code{AuditService.approve} & 仅管理员；版本号可比对 \\
-待审核 $\to$ 草稿 & \code{AuditService.reject} & 必须填写驳回原因；写审核记录 \\
-已发布 $\to$ 已预约 & \code{TradeService.reserve} & 锁内查重；非本人商品；幂等键 \\
-已预约 $\to$ 已发布 & \code{TradeService.cancel} & 仅卖家；预约记录置为已取消 \\
-已预约 $\to$ 已确认 & \code{TradeService.confirm} & 仅卖家；必须有有效预约 \\
+草稿 $\to$ 待审核 & \code{ItemService.submit\_audit} & 必填字段；仅本人 \\
+待审核 $\to$ 已发布 & \code{AuditService.approve} & 仅管理员；版本比对 \\
+待审核 $\to$ 草稿 & \code{AuditService.reject} & 必填驳回原因 \\
+已发布 $\to$ 已预约 & \code{TradeService.reserve} & 锁内查重；幂等键 \\
+已预约 $\to$ 已发布 & \code{TradeService.cancel} & 仅卖家 \\
+已预约 $\to$ 已确认 & \code{TradeService.confirm} & 仅卖家 \\
 已确认 $\to$ 已完成 & \code{TradeService.finish} & 仅预约买家；满 7 天自动完成 \\
-已发布 $\to$ 已下架 & \code{ItemService.off\_shelf} & 仅本人或管理员；已预约/已确认拒绝 \\
-已下架 $\to$ 已发布 & \code{ItemService.restore} & 仅管理员，卖家不能自行恢复 \\
+已发布 $\to$ 已下架 & \code{ItemService.off\_shelf} & 仅本人或管理员 \\
+已下架 $\to$ 已发布 & \code{ItemService.restore} & 仅管理员 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{时序图的落地}
+\subsection{时序图}
 
-预约是最容易出错的一条流程，按\figref{fig:seq}逐条翻译：\code{alt} 的每个分支对应一个 \code{raise}，\code{with store.lock} 对应图上的临界区。查重放在最前，因为重发的请求必须返回原结果，此时商品已是"已预约"，若先校验状态就会把重发误判为冲突。
+预约流程按\figref{fig:seq}逐条翻译，\code{alt} 分支对应 \code{raise}，\code{with store.lock} 对应临界区。查重放在最前，重发请求此时商品已是已预约，若先校验状态会把重发误判为冲突。
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.74\textwidth]{seq_reserve.pdf}
-\caption{预约商品时序图（含幂等重发分支）}\label{fig:seq}
+\caption{预约商品时序图}\label{fig:seq}
 \end{figure}
 
-修改已发布商品是第二条关键流程（\figref{fig:seq2}）。它把"待审内容"与"商品状态"解耦：修改只写 \code{ItemRevision}，商品仍是已发布、前台仍显示旧信息，审核期间买家照常预约；审核通过时在一个方法里替换全部字段并删除待审记录，驳回则只删待审记录。
+修改已发布商品（\figref{fig:seq2}）把待审内容与商品状态解耦：修改只写 \code{ItemRevision}，前台仍显示旧信息，审核期间买家照常预约；通过时原子替换全部字段，驳回则丢弃待审记录。
 
 \begin{figure}[!htbp]
 \centering
@@ -102,7 +94,7 @@ UML 元素 & 代码构造 & 处理要点 \\
 
 \subsection{代码规模}
 
-最终交付 22 个源文件、3311 行（含空行与注释），去掉空行与整行注释后为 \textbf{2761 行}。另有 8 个测试文件、794 行、73 个用例（\tabref{tab:loc}）。其中服务层业务规则约 1186 行，占 43\%。
+共 22 个源文件、3311 行，去掉空行与注释后 \textbf{2761 行}；另有 8 个测试文件、73 个用例（\tabref{tab:loc}）。
 
 \begin{table}[htbp]
 \centering
@@ -119,8 +111,8 @@ UML 元素 & 代码构造 & 处理要点 \\
 界面层 & 3 & 602 & 500 & \code{shell.py}（530） \\
 装配与入口 & 5 & 548 & 444 & \code{demo.py}（344） \\
 \midrule
-小计 & 22 & 3311 & \textbf{2761} & 平均每文件 126 行有效代码 \\
-测试 & 8 & 794 & 577 & \code{tests/}（73 个用例） \\
+小计 & 22 & 3311 & \textbf{2761} & 平均每文件 126 行 \\
+测试 & 8 & 794 & 577 & 73 个用例 \\
 \bottomrule
 \end{tabularx}
 \end{table}
